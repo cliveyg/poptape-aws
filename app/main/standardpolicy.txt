@@ -1,0 +1,39 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListAllMyBuckets"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::poptape.club/XXXXXX/*"
+            ]
+        },
+        {
+            "Sid": "Stmt1457617230000",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket"
+            ],
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": [
+                        "",
+                        "XXXXXX/"
+                    ]
+                }
+            },
+            "Resource": [
+                "arn:aws:s3:::poptape.club*"
+            ]
+        }
+    ]
+}

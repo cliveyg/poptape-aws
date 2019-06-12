@@ -1,4 +1,4 @@
-# poptape-address
+# poptape-aws
 AWS microservice written in Python Flask with a postgres database backend.
 
 This microservice performs various interactions with AWS

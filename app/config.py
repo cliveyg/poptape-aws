@@ -12,14 +12,10 @@ class Config(object):
     LOG_FILENAME = os.getenv('LOG_FILENAME')
     LOG_LEVEL = os.getenv('LOG_LEVEL')
     FERNET_KEY = os.getenv('FERNET_KEY')
-    MONGO_AUTH_SOURCE = os.getenv('MONGO_AUTH_SOURCE')
-    MONGO_HOST = os.getenv('MONGO_HOST')
-    MONGO_PORT = os.getenv('MONGO_PORT')
-    MONGO_USERNAME = os.getenv('MONGO_POPTAPE_ITEMS_USER')
-    MONGO_PASSWORD = os.getenv('MONGO_POPTAPE_ITEMS_PASS')
-    MONGO_DBNAME = os.getenv('MONGO_DBNAME')
-    MONGO_CONNECT = os.getenv('MONGO_CONNECT')
-    MONGO_URI = os.getenv('MONGO_URI')
+    SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 
 class TestConfig(Config):
     FOTO_LIMIT_PER_PAGE = "2"

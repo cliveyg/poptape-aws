@@ -52,12 +52,6 @@ def create_aws_user(public_id):
     app.logger.debug('AWS user ['+collection_name+'] created for user ['+public_id+']')
     app.logger.debug('AWS Response is '+str(create_response))
 
-    cipher_suite = Fernet(app.config['FERNET_KEY'].encode('utf-8'))
-
-    aws_UserId = cipher_suite.encrypt(create_response['User']['UserId'].encode('utf-8'))
-    aws_UserName = cipher_suite.encrypt(create_response['User']['UserName'].encode('utf-8'))
-    aws_Arn = cipher_suite.encrypt(create_response['User']['Arn'].encode('utf-8'))
-
     #------------------------------------
     # set policy for user
 
@@ -92,20 +86,21 @@ def create_aws_user(public_id):
                          Status code is ['+key_response.status_code+']')
         return False
 
+    cipher_suite = Fernet(app.config['FERNET_KEY'].encode('utf-8'))
     aws_AccessKeyId = cipher_suite.encrypt(key_response['AccessKey']['AccessKeyId'].encode('utf-8'))
     aws_SecretAccessKey = cipher_suite.encrypt(key_response['AccessKey']['SecretAccessKey'].encode('utf-8'))
    
     app.logger.debug('AWS access key created for AWS user ['+collection_name+']')
-    
+
     aws_user = AwsDetails(public_id = public_id,
                           aws_CreateUserRequestId = create_response['ResponseMetadata']['RequestId'],
-                          aws_UserId = aws_UserId,
+                          aws_UserId = create_response['User']['UserId'],
                           aws_CreateDate = create_response['User']['CreateDate'],
-                          aws_UserName = aws_UserName,
+                          aws_UserName = create_response['User']['UserName'],
                           aws_AccessKeyId = aws_AccessKeyId,
                           aws_SecretAccessKey = aws_SecretAccessKey,
                           aws_PolicyName = 'poptape_aws_standard_user_policy',
-                          aws_Arn = aws_Arn)
+                          aws_Arn = create_response['User']['Arn'])
     try:
         db.session.add(aws_user)
         db.session.commit()

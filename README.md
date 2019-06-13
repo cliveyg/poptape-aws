@@ -20,7 +20,7 @@ Blah
 In addition most routes will return an HTTP status of 429 if too many requests are made in a certain space of time. The time frame is set on a route by route basis.
 
 #### Tests:
-Tests can be run from app root using: `pytest --cov=app app/tests`
+Tests can be run from app root using: `pytest --cov-config=app/tests/.coveragerc --cov=app app/tests`
 
 #### A Title:
 
@@ -29,3 +29,4 @@ This app can now be run in Docker using the included docker-compose.yml and Dock
 
 #### TODO:
 * All of it!
+* Tests

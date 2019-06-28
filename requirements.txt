@@ -11,7 +11,7 @@ click==6.7
 coverage==4.5.3
 cryptography==2.7
 docutils==0.14
-Flask==0.12.2
+Flask==0.12.3
 Flask-Limiter==1.0.1
 Flask-Migrate==2.5.2
 Flask-Script==2.0.6
@@ -21,7 +21,7 @@ gunicorn==19.9.0
 idna==2.8
 importlib-metadata==0.17
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.10.1
 jmespath==0.9.3
 jsonschema==3.0.1
 limits==1.3

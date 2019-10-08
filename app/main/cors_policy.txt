@@ -1,0 +1,10 @@
+# Define the configuration rules
+cors_configuration = {
+    'CORSRules': [{
+        'AllowedHeaders': ['Authorization'],
+        'AllowedMethods': ['GET', 'PUT'],
+        'AllowedOrigins': ['https://poptape.club'],
+        'ExposeHeaders': ['GET', 'PUT'],
+        'MaxAgeSeconds': 3000
+    }]
+}

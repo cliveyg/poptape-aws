@@ -1,9 +1,9 @@
 # app/main/create_user.py
-#import botocore.client
 from app import db
 from app.models import AwsDetails 
 from flask import current_app as app
-
+import boto3
+from botocore.client import Config
 import os
 import logging
 from sqlalchemy.exc import SQLAlchemyError, DBAPIError
@@ -12,16 +12,21 @@ from botocore.exceptions import ClientError
 # a better hashing ting
 from cryptography.fernet import Fernet
 
+# -----------------------------------------------------------------------------
+
 def create_aws_user(public_id):
 
-    collection_name = 'Z'+public_id.replace('-','')
-    app.logger.debug('Creating AWS user ['+collection_name+']...')
+    collection_name = 'z'+public_id.replace('-','')
+
+    app.logger.debug("In create_aws_user function")
 
     #------------------------------------
     # personalise policy
 
     policy_data = None
-    
+    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+
+    #TODO: put this in separate function    
     try:
         filepath = os.path.join(os.path.dirname(__file__), 'standardpolicy.txt')
         file = open(filepath, 'r')
@@ -31,8 +36,6 @@ def create_aws_user(public_id):
         return False
     
     policy_data = policy_data.replace('XXXXXX',collection_name)
-
-    #app.logger.debug('Opened standardpolicy.txt...')
 
     #------------------------------------
     # create user
@@ -46,59 +49,58 @@ def create_aws_user(public_id):
         return False
 
     if create_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
-        app.logger.debug('Problem creating AWS user. Status code is ['+create_response.status_code+']')
+        app.logger.error('Problem creating AWS user. Status code is ['+create_response.status_code+']')
         return False
 
-    app.logger.debug('AWS user ['+collection_name+'] created for user ['+public_id+']')
-    app.logger.debug('AWS Response is '+str(create_response))
+    app.logger.debug("user created")
 
     #------------------------------------
     # set policy for user
+    #TODO: get policy name from config/.env
 
     try:
         policy_response = app.iam.put_user_policy(
-            UserName=collection_name,
-            PolicyName='poptape_aws_standard_user_policy',
-            PolicyDocument=policy_data
+            UserName = collection_name,
+            PolicyName = 'poptape_aws_standard_user_policy',
+            PolicyDocument = policy_data
         )
     except ClientError as e:
         app.logger.error('Failed to create policy for AWS user: '+str(e))
-        app.logger.error('Policy document is:\n'+policy_data) 
         return False
 
     if policy_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
-        app.logger.info('Problem creating policy for AWS user. Status code is ['+policy_response.status_code+']')
+        app.logger.error('Problem creating policy for AWS user. Status code is ['+policy_response.status_code+']')
         return False
 
-    app.logger.debug('AWS policy created for AWS user ['+collection_name+']')
+    app.logger.debug("policy set for user")
 
     #------------------------------------
     # create access key for user
     
     try:
-        key_response = app.iam.create_access_key(UserName=collection_name)
+        key_response = app.iam.create_access_key(UserName = collection_name)
     except ClientError as e:
         app.logger.error('Failed to create access key for AWS user: '+str(e))
         return False    
     
     if key_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
-        app.logger.info('Problem creating access key for AWS user. \
+        app.logger.error('Problem creating access key for AWS user. \
                          Status code is ['+key_response.status_code+']')
         return False
 
-    cipher_suite = Fernet(app.config['FERNET_KEY'].encode('utf-8'))
+    app.logger.debug("access key created for user")
+
+    cipher_suite = Fernet(app.config['FERNET_KEY'])
     aws_AccessKeyId = cipher_suite.encrypt(key_response['AccessKey']['AccessKeyId'].encode('utf-8'))
     aws_SecretAccessKey = cipher_suite.encrypt(key_response['AccessKey']['SecretAccessKey'].encode('utf-8'))
-   
-    app.logger.debug('AWS access key created for AWS user ['+collection_name+']')
 
     aws_user = AwsDetails(public_id = public_id,
                           aws_CreateUserRequestId = create_response['ResponseMetadata']['RequestId'],
                           aws_UserId = create_response['User']['UserId'],
                           aws_CreateDate = create_response['User']['CreateDate'],
                           aws_UserName = create_response['User']['UserName'],
-                          aws_AccessKeyId = aws_AccessKeyId,
-                          aws_SecretAccessKey = aws_SecretAccessKey,
+                          aws_AccessKeyId = aws_AccessKeyId.decode('utf-8'),
+                          aws_SecretAccessKey = aws_SecretAccessKey.decode('utf-8'),
                           aws_PolicyName = 'poptape_aws_standard_user_policy',
                           aws_Arn = create_response['User']['Arn'])
     try:
@@ -109,10 +111,102 @@ def create_aws_user(public_id):
         app.logger.error('Database says no!:\n'+str(e))
         return False 
 
-    app.logger.debug('AWS data successfully created for user ['+public_id+']')
+    app.logger.debug("user saved in aws db")
 
     #------------------------------------
-    # create s3 folder/object
+    # create s3 bucket and add bucket policy to it
+
+    try:
+        filepath = os.path.join(os.path.dirname(__file__), 'bucket_policy.txt')
+        file = open(filepath, 'r')
+        bucket_policy = file.read()
+    except OSError as e:
+        app.logger.error('Failed to open and/or read bucket policy template. Check it exists and permissions are correct.')
+        return False
+
+    bucket_policy = bucket_policy.replace('XXXXXX',collection_name)
+    bucket_policy = bucket_policy.replace('AAAAAA',aws_user.aws_Arn)
+
+    try:
+        buck_resp = app.s3.create_bucket(Bucket = collection_name.lower()) 
+        #app.s3.put_bucket_policy(Bucket = collection_name.lower(), Policy = bucket_policy)
+    except ClientError as e:
+        app.logger.error('Failed to create bucket for AWS user: '+str(e))
+        return False
+
+    if buck_resp['ResponseMetadata']["HTTPStatusCode"] != 200:
+        app.logger.error("Could not create bucket [%s] for user", collection_name.lower())
+        return False
+
+    app.logger.debug("bucket created for user")
+
+    try:
+        app.s3.put_bucket_policy(Bucket = collection_name.lower(), Policy = bucket_policy)
+    except ClientError as e:
+        app.logger.error('Failed to create bucket policy: '+str(e))
+        return False        
+
+    app.logger.debug("bucket policy created")
+
+    #------------------------------------
+    # add cors policy to bucket
+    cors_configuration = {
+        'CORSRules': [{
+            'AllowedHeaders': ['*'],
+            'AllowedMethods': ['GET', 'PUT', 'POST'],
+            'AllowedOrigins': ['*'],
+            'ExposeHeaders': ['GET', 'PUT', 'POST'],
+            'MaxAgeSeconds': 300000
+        }]
+    }
+
+    try:
+        app.s3.put_bucket_cors(Bucket = collection_name.lower(),
+                               CORSConfiguration = cors_configuration)
+    except ClientError as e:
+        app.logger.error('Failed to create cors config for bucket [%s]: %s',
+                         collection_name,
+                         str(e))
+        return False
+    
+    app.logger.debug("cors config added to bucket")
 
     return True
 
+# -----------------------------------------------------------------------------
+
+def create_presigned_url(bucket_name, object_name, expiration, public_id):
+
+    aws_details = AwsDetails.query.filter_by(public_id=public_id).first()
+
+    if not aws_details:
+        return None
+
+    # get access keys
+    cipher_suite = Fernet(app.config['FERNET_KEY'])
+    aws_AccessKeyId = cipher_suite.decrypt(aws_details.aws_AccessKeyId.encode('utf-8'))
+    aws_SecretAccessKey = cipher_suite.decrypt(aws_details.aws_SecretAccessKey.encode('utf-8'))
+  
+    aws_AccessKeyId = aws_AccessKeyId.decode('utf-8')
+    aws_SecretAccessKey = aws_SecretAccessKey.decode('utf-8')
+
+    try:
+        s3 = boto3.client('s3',
+                          region_name='us-east-1',
+                          aws_access_key_id=aws_AccessKeyId,
+                          aws_secret_access_key=aws_SecretAccessKey,
+                          config=Config(signature_version='s3v4'))
+
+        #object_name = object_name + ".jpeg"
+
+        response = s3.generate_presigned_post(bucket_name,
+                                                  object_name,
+                                                  Fields=None,
+                                                  Conditions=None,
+                                                  ExpiresIn=expiration)        
+    except ClientError as e:
+        logging.error(e)
+        return None
+
+    # response contains the presigned URL
+    return response

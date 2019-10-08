@@ -1,7 +1,7 @@
 FROM python:3.7-alpine 
 # as base                                                                                                
                                                                                                                               
-RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev 
+RUN apk update && apk add postgresql-dev libffi-dev gcc python3-dev musl-dev 
 # add bash etc as alpine version doesn't have these
 RUN apk add linux-headers 
 RUN apk add --no-cache bash gawk sed grep bc coreutils

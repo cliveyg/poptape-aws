@@ -3,12 +3,13 @@ from app import db, limiter, flask_uuid
 from flask import jsonify, request, abort, url_for
 from flask import current_app as app
 from app.main import bp
-from app.main.create_user import create_aws_user
+from app.main.create_user import create_aws_user, create_presigned_url
 from app.models import AwsDetails 
 from app.decorators import require_access_level, microservice_only
 from app.assertions import assert_valid_schema
 from jsonschema.exceptions import ValidationError as JsonValidationError
 import uuid
+from urllib.parse import unquote
 
 # reject any non-json requests
 @bp.before_request
@@ -20,8 +21,26 @@ def only_json():
 # create aws user
 @bp.route('/aws/user', methods=['POST'])
 @limiter.limit("100/minute")
-@require_access_level(10, request)
-def create_user_on_aws(public_id, request):
+#TODO: fix circular calls about access level
+#@require_access_level(10, request)
+#def create_user_on_aws(public_id, request):
+def create_user_on_aws():
+
+    app.logger.info("arrived at /aws/user route")
+
+    # check input is valid json
+    try:
+        data = request.get_json()
+    except:
+        return jsonify({ 'message': 'Check ya inputs mate. Yer not valid, Jason'}), 400
+
+    # validate input against json schemas
+    try:
+        assert_valid_schema(data, 'uuid')
+    except JsonValidationError as err:
+        return jsonify({ 'message': 'Check ya inputs mate.', 'error': err.message }), 400
+
+    public_id = data['public_id']
 
     if create_aws_user(public_id):
         return jsonify({ 'message': 'User created on AWS' }), 201
@@ -54,6 +73,43 @@ def get_user_detail(public_id, request):
     return jsonify(user_data)
 
 # -----------------------------------------------------------------------------
+# generate presigned urls
+@bp.route('/aws/urls', methods=['POST'])
+@limiter.limit("100/minute")
+@require_access_level(10, request)
+def generate_presigned_urls(public_id, request):
+
+    # check input is valid json
+    try:
+        data = request.get_json()
+    except:
+        return jsonify({ 'message': 'Check ya inputs mate. Yer not valid, Jason'}), 400
+
+    # validate input against json schemas
+    try:
+        assert_valid_schema(data, 'urls')
+    except JsonValidationError as err:
+        return jsonify({ 'message': 'Check ya inputs mate.', 'error': err.message }), 400
+
+    objects = data['objects']
+    expiration = 3600 #TODO: put this in .env
+    collection_name = 'z'+public_id.replace('-','')
+    bucket_name = collection_name.lower()
+    urls = []
+
+    for object_id in objects:
+        resp = None
+        response = {}
+        resp = create_presigned_url(bucket_name, object_id, expiration, public_id)
+        if resp:
+            response['foto_id'] = object_id
+            response['fields']  = resp['fields']
+            #response[object_id] = resp    
+            urls.append(response)
+
+    return jsonify({ 'aws_urls': urls }), 201
+
+# -----------------------------------------------------------------------------
 # helper route - useful for checking status of api in api_server application
 
 @bp.route('/aws/status', methods=['GET'])
@@ -71,3 +127,22 @@ def system_running():
 def rate_limted(public_id, request):
     return jsonify({ 'message': 'should never see this' }), 200
 
+# -----------------------------------------------------------------------------
+# route for returning all routes on microservice
+
+@bp.route('/aws', methods=['GET'])
+def sitemap():
+
+    output = []
+    for rule in app.url_map.iter_rules():
+
+        options = {}
+        for arg in rule.arguments:
+            options[arg] = "<{0}>".format(arg)
+
+        url = url_for(rule.endpoint, **options)
+        methods = list(rule.methods)
+        if "static" not in url and "rate" not in url:
+            output.append({ 'url': unquote(url), 'methods': methods })
+
+    return jsonify({ 'endpoints': output }), 200

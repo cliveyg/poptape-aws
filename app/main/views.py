@@ -73,6 +73,29 @@ def get_user_detail(public_id, request):
     return jsonify(user_data)
 
 # -----------------------------------------------------------------------------
+# get aws user details for particular user
+@bp.route('/aws/user/<user_id>', methods=['GET'])
+@limiter.limit("10/minute")
+@require_access_level(5, request)
+def get_user_details_by_admin(public_id, request, user_id):
+
+    aws_details = AwsDetails.query.filter_by(public_id=user_id).first()
+
+    if not aws_details:
+        return jsonify({ 'message': 'Where dey gone' }), 404
+
+    user_data = {}
+    user_data['public_id'] = aws_details.public_id
+    user_data['aws_CreateUserRequestId'] = aws_details.aws_CreateUserRequestId
+    user_data['aws_UserId'] = aws_details.aws_UserId
+    user_data['aws_UserName'] = aws_details.aws_UserName
+    user_data['aws_PolicyName'] = aws_details.aws_PolicyName
+    user_data['aws_Arn'] = aws_details.aws_Arn
+    user_data['aws_CreateDate'] = aws_details.aws_CreateDate
+
+    return jsonify(user_data)
+
+# -----------------------------------------------------------------------------
 # generate presigned urls
 @bp.route('/aws/urls', methods=['POST'])
 @limiter.limit("100/minute")

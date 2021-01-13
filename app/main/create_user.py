@@ -8,6 +8,7 @@ import os
 import logging
 from sqlalchemy.exc import SQLAlchemyError, DBAPIError
 from botocore.exceptions import ClientError
+import time
 
 # a better hashing ting
 from cryptography.fernet import Fernet
@@ -37,11 +38,13 @@ def create_aws_user(public_id):
     
     policy_data = policy_data.replace('XXXXXX',collection_name)
 
+    app.logger.debug("Read standard policy text file")
+
     #------------------------------------
     # create user
     
     create_response = None
-
+    app.logger.debug("Attempting to create iam user")
     try:
         create_response = app.iam.create_user(UserName=collection_name)
     except ClientError as e:
@@ -90,29 +93,6 @@ def create_aws_user(public_id):
 
     app.logger.debug("access key created for user")
 
-    cipher_suite = Fernet(app.config['FERNET_KEY'])
-    aws_AccessKeyId = cipher_suite.encrypt(key_response['AccessKey']['AccessKeyId'].encode('utf-8'))
-    aws_SecretAccessKey = cipher_suite.encrypt(key_response['AccessKey']['SecretAccessKey'].encode('utf-8'))
-
-    aws_user = AwsDetails(public_id = public_id,
-                          aws_CreateUserRequestId = create_response['ResponseMetadata']['RequestId'],
-                          aws_UserId = create_response['User']['UserId'],
-                          aws_CreateDate = create_response['User']['CreateDate'],
-                          aws_UserName = create_response['User']['UserName'],
-                          aws_AccessKeyId = aws_AccessKeyId.decode('utf-8'),
-                          aws_SecretAccessKey = aws_SecretAccessKey.decode('utf-8'),
-                          aws_PolicyName = 'poptape_aws_standard_user_policy',
-                          aws_Arn = create_response['User']['Arn'])
-    try:
-        db.session.add(aws_user)
-        db.session.commit()
-    except (SQLAlchemyError, DBAPIError) as e:
-        db.session.rollback()
-        app.logger.error('Database says no!:\n'+str(e))
-        return False 
-
-    app.logger.debug("user saved in aws db")
-
     #------------------------------------
     # create s3 bucket and add bucket policy to it
 
@@ -125,7 +105,9 @@ def create_aws_user(public_id):
         return False
 
     bucket_policy = bucket_policy.replace('XXXXXX',collection_name)
-    bucket_policy = bucket_policy.replace('AAAAAA',aws_user.aws_Arn)
+    bucket_policy = bucket_policy.replace('AAAAAA',create_response['User']['Arn'])
+
+    app.logger.debug("attempting to create a bucket")
 
     try:
         buck_resp = app.s3.create_bucket(Bucket = collection_name.lower()) 
@@ -138,7 +120,13 @@ def create_aws_user(public_id):
         app.logger.error("Could not create bucket [%s] for user", collection_name.lower())
         return False
 
-    app.logger.debug("bucket created for user")
+    app.logger.debug("bucket created for user") 
+    #TODO: fix this - the delay is here as AWS says bucket created ok but sometimes
+    #      when we try and create a bucket afterwards AWS says bucket doesn't exist.
+    #      this is caused by the length of time AWS takes to propogate the new bucket
+    #      info in it's systems. waiting whilst hacky and bad ux should help
+    time.sleep(2)
+    app.logger.debug("attempting to create a bucket policy")
 
     try:
         app.s3.put_bucket_policy(Bucket = collection_name.lower(), Policy = bucket_policy)
@@ -170,6 +158,32 @@ def create_aws_user(public_id):
         return False
     
     app.logger.debug("cors config added to bucket")
+
+    #------------------------------------------------
+    # save user after everything has completed okay
+    #------------------------------------------------
+    cipher_suite = Fernet(app.config['FERNET_KEY'])
+    aws_AccessKeyId = cipher_suite.encrypt(key_response['AccessKey']['AccessKeyId'].encode('utf-8'))
+    aws_SecretAccessKey = cipher_suite.encrypt(key_response['AccessKey']['SecretAccessKey'].encode('utf-8'))
+
+    aws_user = AwsDetails(public_id = public_id,
+                          aws_CreateUserRequestId = create_response['ResponseMetadata']['RequestId'],
+                          aws_UserId = create_response['User']['UserId'],
+                          aws_CreateDate = create_response['User']['CreateDate'],
+                          aws_UserName = create_response['User']['UserName'],
+                          aws_AccessKeyId = aws_AccessKeyId.decode('utf-8'),
+                          aws_SecretAccessKey = aws_SecretAccessKey.decode('utf-8'),
+                          aws_PolicyName = 'poptape_aws_standard_user_policy',
+                          aws_Arn = create_response['User']['Arn'])
+    try:
+        db.session.add(aws_user)
+        db.session.commit()
+    except (SQLAlchemyError, DBAPIError) as e:
+        db.session.rollback()
+        app.logger.error('Database says no!:\n'+str(e))
+        return False
+
+    app.logger.debug("user saved in aws db")
 
     return True
 

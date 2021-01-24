@@ -35,5 +35,6 @@
 !app/tests/__init__.py
 !app/.env.example
 !manage.py
-
+!app/schemas/urls.json
+!app/schemas/uuid.json
 !.gitignore

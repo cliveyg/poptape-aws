@@ -1,5 +1,5 @@
 from flask import Flask
-
+from flask_migrate import Migrate
 from app.extensions import limiter, db, flask_uuid
 from app.extensions import create_aws_client
 from app.config import Config
@@ -18,6 +18,8 @@ def create_app(config_class=Config):
     limiter.init_app(app)
     flask_uuid.init_app(app)
     db.init_app(app)
+    migrate = Migrate(app, db)
+    migrate.init_app(app, db)
 
     # blueprints
     from app.main import bp as main_bp

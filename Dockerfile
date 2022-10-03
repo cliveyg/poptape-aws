@@ -1,7 +1,7 @@
-FROM python:3.9-alpine
-# as base                                                                                                
-                                                                                                                              
-RUN apk update && apk add postgresql-dev gcc g++ make libffi-dev python3-dev musl-dev
+FROM python:3.10-alpine
+# as base
+
+RUN apk update && apk add postgresql-dev gcc g++ make libffi-dev python3-dev musl-dev openssl-dev
 # add bash etc as alpine version doesn't have these
 RUN apk add linux-headers 
 RUN apk add --no-cache bash gawk sed grep bc coreutils

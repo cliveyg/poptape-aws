@@ -1,4 +1,3 @@
-version: '3'
 services:
   api:
     env_file:
@@ -11,17 +10,19 @@ services:
       - "1240:8040"
     restart: always
     volumes:
-      - ${LOGFILE}
+      - ${LOCAL_LOG_LOC}:/aws/log
     logging:
       driver: "json-file"
       options:
         max-size: "10Mb"
         max-file: "5"
     networks:
-      - net_poptape
+      - poptape
   db:
     image: postgres:alpine
     restart: always
+    env_file:
+      - "app/.env"
     ports:
       - "1241:5432"
     environment:
@@ -31,9 +32,9 @@ services:
     volumes:
       - poptape_awsdata:/var/lib/postgresql/data
     networks:
-      - net_poptape
+      - poptape
 networks:
-  net_poptape:
+  poptape:
     external: true
 volumes:
-  poptape_awsdata:  
+  poptape_awsdata:

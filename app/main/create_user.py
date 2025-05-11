@@ -27,7 +27,7 @@ def create_aws_user(public_id):
     policy_data = None
     os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
-    #TODO: put this in separate function    
+    #TODO: put this in separate function and/or get it from the db
     try:
         filepath = os.path.join(os.path.dirname(__file__), 'standardpolicy.txt')
         file = open(filepath, 'r')

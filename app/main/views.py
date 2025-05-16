@@ -22,6 +22,7 @@ def only_json():
 @bp.route('/aws/user', methods=['POST'])
 @limiter.limit("100/minute")
 #TODO: fix circular calls about access level
+#WARNING: fix this
 #@require_access_level(10, request)
 #def create_user_on_aws(public_id, request):
 def create_user_on_aws():

@@ -54,11 +54,13 @@ def create_app(config_class=Config):
     if iam_error:
         app.logger.error("Could not create AWS 'iam' client [%s]", str(iam_error))
     app.iam = iam
+    app.logger.debug("Created 'iam' client ✓")
 
     s3, s3_error = create_aws_client("s3")
     if s3_error:
         app.logger.error("Could not create AWS 's3' client [%s]", str(s3_error))
     app.s3 = s3
+    app.logger.debug("Created 's3' client ✓")
 
     return app
 

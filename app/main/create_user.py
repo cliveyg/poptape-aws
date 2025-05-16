@@ -55,7 +55,7 @@ def create_aws_user(public_id):
         app.logger.error('Problem creating AWS user. Status code is ['+create_response.status_code+']')
         return False
 
-    app.logger.debug("user created")
+    app.logger.debug("user created ✓")
 
     #------------------------------------
     # set policy for user
@@ -75,7 +75,7 @@ def create_aws_user(public_id):
         app.logger.error('Problem creating policy for AWS user. Status code is ['+policy_response.status_code+']')
         return False
 
-    app.logger.debug("policy set for user")
+    app.logger.debug("policy set for user ✓")
 
     #------------------------------------
     # create access key for user
@@ -91,7 +91,7 @@ def create_aws_user(public_id):
                          Status code is ['+key_response.status_code+']')
         return False
 
-    app.logger.debug("access key created for user")
+    app.logger.debug("access key created for user ✓")
 
     #------------------------------------
     # create s3 bucket and add bucket policy to it
@@ -120,11 +120,23 @@ def create_aws_user(public_id):
         app.logger.error("Could not create bucket [%s] for user", collection_name.lower())
         return False
 
-    app.logger.debug("bucket created for user") 
+    app.logger.debug("bucket created for user ✓")
     #TODO: fix this - the delay is here as AWS says bucket created ok but sometimes
     #      when we try and create a bucket afterwards AWS says bucket doesn't exist.
     #      this is caused by the length of time AWS takes to propogate the new bucket
     #      info in it's systems. waiting whilst hacky and bad ux should help
+    time.sleep(2)
+    app.logger.debug("attempting to update bucket settings...")
+    try:
+        app.s3.delete_public_access_block(
+            Bucket = collection_name.lower(),
+            ExpectedBucketOwner = app.config['AWS_ACCOUNT_ID'],
+        )
+    except ClientError as e:
+        app.logger.error('Failed to update bucket settings: '+str(e))
+        return False
+    app.logger.debug("updated bucket settings ✓")
+
     time.sleep(2)
     app.logger.debug("attempting to create a bucket policy")
 
@@ -134,7 +146,7 @@ def create_aws_user(public_id):
         app.logger.error('Failed to create bucket policy: '+str(e))
         return False        
 
-    app.logger.debug("bucket policy created")
+    app.logger.debug("bucket policy created ✓")
 
     #------------------------------------
     # add cors policy to bucket
@@ -157,7 +169,7 @@ def create_aws_user(public_id):
                          str(e))
         return False
     
-    app.logger.debug("cors config added to bucket")
+    app.logger.debug("cors config added to bucket ✓")
 
     #------------------------------------------------
     # save user after everything has completed okay
@@ -183,7 +195,7 @@ def create_aws_user(public_id):
         app.logger.error('Database says no!:\n'+str(e))
         return False
 
-    app.logger.debug("user saved in aws db")
+    app.logger.debug("user saved in aws db ✓")
 
     return True
 

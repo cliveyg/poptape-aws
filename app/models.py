@@ -3,7 +3,7 @@ from app import db
 import datetime
 
 #-----------------------------------------------------------------------------#
-# models match to tables in postgres
+# models match to tables in postgres
 #-----------------------------------------------------------------------------#
 
 class AwsDetails(db.Model):

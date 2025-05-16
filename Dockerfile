@@ -10,6 +10,7 @@ RUN apk --no-cache add libpq
 COPY aws.py /aws/
 COPY requirements.txt /aws/
 COPY app /aws/app
+COPY manage.py /aws/manage.py
 WORKDIR /aws
 
 RUN mkdir -p /aws/log

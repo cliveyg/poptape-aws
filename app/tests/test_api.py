@@ -68,7 +68,7 @@ class MyTest(FlaskTestCase):
 
     def test_status_ok(self):
         headers = { 'Content-type': 'application/json' }
-        response = self.client.get('/authy/status', headers=headers)
+        response = self.client.get('/aws/status', headers=headers)
         self.assertEqual(response.status_code, 200)
 
     # -----------------------------------------------------------------------------
@@ -76,7 +76,7 @@ class MyTest(FlaskTestCase):
     def test_404(self):
         # this behaviour is slightly different to live as we've mocked the
         headers = { 'Content-type': 'application/json' }
-        response = self.client.get('/authy/resourcenotfound', headers=headers)
+        response = self.client.get('/aws/resourcenotfound', headers=headers)
         self.assertEqual(response.status_code, 404)
         self.assertTrue(response.is_json)
 
@@ -84,7 +84,7 @@ class MyTest(FlaskTestCase):
 
     def test_api_rejects_html_input(self):
         headers = { 'Content-type': 'text/html' }
-        response = self.client.get('/authy/status', headers=headers)
+        response = self.client.get('/aws/status', headers=headers)
         self.assertEqual(response.status_code, 400)
         self.assertTrue(response.is_json)
 
@@ -92,7 +92,7 @@ class MyTest(FlaskTestCase):
 
     def test_wrong_method_error_returns_json(self):
         headers = { 'Content-type': 'application/json' }
-        response = self.client.post('/authy/status', json={ 'test': 1 }, headers=headers)
+        response = self.client.post('/aws/status', json={ 'test': 1 }, headers=headers)
         self.assertEqual(response.status_code, 405)
         self.assertTrue(response.is_json)
 

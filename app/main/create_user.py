@@ -226,10 +226,10 @@ def create_presigned_url(bucket_name, object_name, expiration, public_id):
         #object_name = object_name + ".jpeg"
 
         response = s3.generate_presigned_post(bucket_name,
-                                                  object_name,
-                                                  Fields=None,
-                                                  Conditions=None,
-                                                  ExpiresIn=expiration)        
+                                              object_name,
+                                              Fields=None,
+                                              Conditions=None,
+                                              ExpiresIn=expiration)
     except ClientError as e:
         logging.error(e)
         return None

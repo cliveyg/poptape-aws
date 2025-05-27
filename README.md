@@ -1,3 +1,5 @@
+![API Tests](https://github.com/cliveyg/poptape-aws/actions/workflows/api-test.yml/badge.svg)
+
 # poptape-aws
 AWS microservice written in Python Flask with a postgres database backend.
 

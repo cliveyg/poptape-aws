@@ -15,6 +15,7 @@ Flask
 Flask-Limiter
 Flask-Migrate
 Flask-SQLAlchemy
+Flask-Testing
 Flask-UUID
 gunicorn
 idna
@@ -37,6 +38,7 @@ pyparsing
 pyrsistent
 pytest
 pytest-cov
+pytest-html
 python-dateutil
 python-dotenv
 python-editor

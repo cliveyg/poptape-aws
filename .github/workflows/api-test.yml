@@ -1,57 +1,69 @@
-name: API Test
-
+name: API tests
+permissions:
+  contents: read
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 11 * * 1' # run "At 11:00 on Monday"
 
 jobs:
-  test:
+  # Run code tests before building the image, to ensure it is good to go
+  unit-tests:
+    name: Run code tests
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        python-version: ['3.11']
-
+        python-version: ['3.12'] # Using a list so it's extensible for future use
+    services:
+      # label used to access the service container
+      postgres:
+        # dockerhub image
+        image: postgres
+        # provide the login and db deets for postgres
+        env:
+          POSTGRES_DB: poptape_aws_test
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_USER: poptape_aws_test
+        ports:
+          # maps tcp port 5432 on service container to the host
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Install postgres client
+        run: |
+          sudo apt-get update && sudo apt-get install --yes --no-install-recommends postgresql-client
+
+      - uses: actions/checkout@v4
+      - name: Setting up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: "x64"
-        env:
-          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
 
-      - name: Install dependencies
+      - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run API tests with coverage and store results
+      - name: Create DB tables
         run: |
-          set -o pipefail
-          pytest --cov=app --cov-report=xml | tee pytest-raw-output.log
+          pwd
+          psql -h localhost -U poptape_aws_test password=${{ secrets.TEST_DB_PASSWORD }} -f db_schema/poptape_aws_db_schema.sql
+          psql -h localhost -U poptape_aws_test password=${{ secrets.TEST_DB_PASSWORD }} -c '\dt'
 
-      - name: Generate tests badge
+      - name: Test with pytest
         run: |
-          python scripts/generate_test_badge.py pytest-raw-output.log
-
-      - name: Commit and push test badge
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update tests badge [auto]"
-          file_pattern: "tests-badge.svg"
-          branch: main
-          commit_user_name: github-actions
-          commit_user_email: github-actions[bot]@users.noreply.github.com
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-xml
-          path: coverage.xml
+          touch poptape_aws.log
+          coverage run -m --omit="*/test*" pytest -v --junitxml=junit.xml --html=report.html
+          coverage xml          
+          echo "$(coverage report -m )"
+          covRes="$(coverage report -m --fail-under=40)"
+          echo "$covRes"

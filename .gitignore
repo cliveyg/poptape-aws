@@ -35,8 +35,11 @@
 !app/tests/__init__.py
 !scripts/generate_test_badge.py
 !app/.env.example
+!.github/workflows/api-test.yml
+!.github/workflows/codeql-analysis.yml
 !manage.py
 !app/schemas/urls.json
 !app/schemas/uuid.json
 !.gitignore
 !pytest.ini
+!db_schema/poptape_aws_db_schema.sql

@@ -22,4 +22,7 @@ class Config(object):
 class TestConfig(Config):
     FOTO_LIMIT_PER_PAGE = "2"
     LOG_LEVEL = "DEBUG"
-
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    WTF_CSRF_ENABLED = False

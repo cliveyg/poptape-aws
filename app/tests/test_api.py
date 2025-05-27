@@ -2,10 +2,11 @@ import json
 import pytest
 from unittest.mock import patch, MagicMock
 from app import create_app, db
+from app.config import TestConfig
 
 @pytest.fixture
 def client():
-    app = create_app('TestConfig')
+    app = create_app(TestConfig)
     app.config['TESTING'] = True
     with app.app_context():
         db.create_all()

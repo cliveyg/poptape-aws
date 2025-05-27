@@ -30,7 +30,7 @@
 !app/main/views.py
 !app/main/create_user.py
 !app/main/standardpolicy.txt
-!app/tests/old_test_api.py
+!app/tests/test_api.py
 !app/tests/.coveragerc
 !app/tests/__init__.py
 !app/.env.example

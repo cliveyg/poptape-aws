@@ -38,6 +38,7 @@ pyparsing
 pyrsistent
 pytest
 pytest-cov
+pytest-html
 python-dateutil
 python-dotenv
 python-editor

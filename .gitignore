@@ -33,6 +33,7 @@
 !app/tests/test_api.py
 !app/tests/.coveragerc
 !app/tests/__init__.py
+!scripts/generate_test_badge.py
 !app/.env.example
 !manage.py
 !app/schemas/urls.json

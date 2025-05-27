@@ -1,0 +1,53 @@
+name: API Test
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run API tests with coverage and store results
+        run: |
+          pytest --cov=app --cov-report=xml | tee pytest-raw-output.log
+
+      - name: Generate tests badge
+        run: |
+          python scripts/generate_test_badge.py pytest-raw-output.log
+
+      - name: Commit and push test badge
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update tests badge [auto]"
+          file_pattern: "tests-badge.svg"
+          branch: main
+          commit_user_name: github-actions
+          commit_user_email: github-actions[bot]@users.noreply.github.com
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml

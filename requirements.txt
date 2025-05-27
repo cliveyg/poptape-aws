@@ -15,6 +15,7 @@ Flask
 Flask-Limiter
 Flask-Migrate
 Flask-SQLAlchemy
+Flask-Testing
 Flask-UUID
 gunicorn
 idna

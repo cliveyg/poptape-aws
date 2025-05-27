@@ -42,3 +42,4 @@
 !app/schemas/uuid.json
 !.gitignore
 !pytest.ini
+!db_schema/poptape_aws_db_schema.sql

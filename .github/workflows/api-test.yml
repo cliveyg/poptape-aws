@@ -32,6 +32,7 @@ jobs:
 
       - name: Run API tests with coverage and store results
         run: |
+          set -o pipefail
           pytest --cov=app --cov-report=xml | tee pytest-raw-output.log
 
       - name: Generate tests badge

@@ -31,23 +31,25 @@ def create_app(config_class=Config):
     app.register_error_handler(404, handle_not_found)
 
     # logging stuff
-    formatter = logging.Formatter("[%(asctime)s] [%(pathname)s:%(lineno)d] %(levelname)s - %(message)s")
-    handler = RotatingFileHandler(app.config['LOG_FILENAME'], maxBytes=10000000, backupCount=5)
-    log_level = app.config['LOG_LEVEL']
+    log_filename = app.config.get('LOG_FILENAME')
+    if log_filename:
+        formatter = logging.Formatter("[%(asctime)s] [%(pathname)s:%(lineno)d] %(levelname)s - %(message)s")
+        handler = RotatingFileHandler(app.config['LOG_FILENAME'], maxBytes=10000000, backupCount=5)
+        log_level = app.config['LOG_LEVEL']
 
-    if log_level == 'DEBUG': # pragma: no cover
-        app.logger.setLevel(logging.DEBUG) # pragma: no cover
-    elif log_level == 'INFO': # pragma: no cover
-        app.logger.setLevel(logging.INFO) # pragma: no cover
-    elif log_level == 'WARNING': # pragma: no cover
-        app.logger.setLevel(logging.WARNING) # pragma: no cover
-    elif log_level == 'ERROR': # pragma: no cover
-        app.logger.setLevel(logging.ERROR) # pragma: no cover
-    else: # pragma: no cover
-        app.logger.setLevel(logging.CRITICAL) # pragma: no cover
+        if log_level == 'DEBUG': # pragma: no cover
+            app.logger.setLevel(logging.DEBUG) # pragma: no cover
+        elif log_level == 'INFO': # pragma: no cover
+            app.logger.setLevel(logging.INFO) # pragma: no cover
+        elif log_level == 'WARNING': # pragma: no cover
+            app.logger.setLevel(logging.WARNING) # pragma: no cover
+        elif log_level == 'ERROR': # pragma: no cover
+            app.logger.setLevel(logging.ERROR) # pragma: no cover
+        else: # pragma: no cover
+            app.logger.setLevel(logging.CRITICAL) # pragma: no cover
 
-    handler.setFormatter(formatter)
-    app.logger.addHandler(handler)
+        handler.setFormatter(formatter)
+        app.logger.addHandler(handler)
 
     # aws stuff
     iam, iam_error = create_aws_client("iam")

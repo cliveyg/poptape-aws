@@ -1,12 +1,11 @@
 import json
 import uuid
 import pytest
-from unittest.mock import patch, MagicMock
-from app import create_app, db
-from app.config import TestConfig
 
 @pytest.fixture
 def client():
+    from app import create_app, db
+    from app.config import TestConfig
     app = create_app(TestConfig)
     app.config['TESTING'] = True
     with app.app_context():
@@ -51,6 +50,7 @@ def test_sitemap_lists_endpoints(client):
 
 def test_create_user_success(client):
     payload = {'public_id': valid_uuid()}
+    from unittest.mock import patch
     with patch('app.main.create_user.create_aws_user', return_value=True):
         response = client.post('/aws/user', data=json.dumps(payload), content_type='application/json')
         assert response.status_code == 201
@@ -61,24 +61,23 @@ def test_create_user_invalid_json(client):
     assert response.status_code == 400
 
 def test_create_user_invalid_schema(client):
-    # Missing public_id
     response = client.post('/aws/user', data=json.dumps({'foo': 'bar'}), content_type='application/json')
     assert response.status_code == 400
 
 def test_create_user_invalid_uuid(client):
-    # public_id is not a valid uuid
     payload = {'public_id': 'not-a-uuid'}
     response = client.post('/aws/user', data=json.dumps(payload), content_type='application/json')
     assert response.status_code == 400
 
 def test_create_user_failure(client):
     payload = {'public_id': valid_uuid()}
+    from unittest.mock import patch
     with patch('app.main.create_user.create_aws_user', return_value=False):
         response = client.post('/aws/user', data=json.dumps(payload), content_type='application/json')
-        # This endpoint returns 500 on failure
         assert response.status_code == 500
 
 def test_get_user_detail_success(client):
+    from unittest.mock import MagicMock, patch
     fake_user = MagicMock()
     fake_user.public_id = valid_uuid()
     fake_user.aws_CreateUserRequestId = 'reqid'
@@ -98,12 +97,14 @@ def test_get_user_detail_success(client):
         assert data['aws_UserName'] == 'username'
 
 def test_get_user_detail_not_found(client):
+    from unittest.mock import patch
     with patch('app.main.views.AwsDetails.query') as mock_query:
         mock_query.filter_by.return_value.first.return_value = None
         response = client.get('/aws/user', content_type='application/json')
         assert response.status_code == 404
 
 def test_get_user_details_by_admin_success(client):
+    from unittest.mock import MagicMock, patch
     fake_user = MagicMock()
     fake_user.public_id = valid_uuid()
     fake_user.aws_CreateUserRequestId = 'reqid'
@@ -121,12 +122,14 @@ def test_get_user_details_by_admin_success(client):
         assert data['aws_UserName'] == 'username'
 
 def test_get_user_details_by_admin_not_found(client):
+    from unittest.mock import patch
     with patch('app.main.views.AwsDetails.query') as mock_query:
         mock_query.filter_by.return_value.first.return_value = None
         response = client.get(f'/aws/user/{valid_uuid()}', content_type='application/json')
         assert response.status_code == 404
 
 def test_generate_presigned_urls_success(client):
+    from unittest.mock import patch
     payload = {'objects': ['foto1', 'foto2']}
     with patch('app.main.views.create_presigned_url', return_value={'fields': {'key': 'value'}}):
         response = client.post('/aws/urls', data=json.dumps(payload), content_type='application/json')
@@ -146,6 +149,7 @@ def test_generate_presigned_urls_invalid_schema(client):
     assert response.status_code == 400
 
 def test_generate_presigned_urls_empty_list(client):
+    from unittest.mock import patch
     payload = {'objects': []}
     with patch('app.main.views.create_presigned_url', return_value={'fields': {'key': 'value'}}):
         response = client.post('/aws/urls', data=json.dumps(payload), content_type='application/json')
@@ -157,7 +161,6 @@ def test_generate_presigned_urls_empty_list(client):
 
 def test_rate_limited_endpoint(client):
     resp = client.get('/aws/admin/ratelimited', content_type='application/json')
-    # Should be 429 on first call due to limiter, but allow 200 if configuration changes
     assert resp.status_code in (429, 200)
 
 def test_405_error_user(client):
@@ -165,12 +168,10 @@ def test_405_error_user(client):
     assert response.status_code == 405
 
 def test_429_error(client):
-    # Try to trigger the ratelimiter if possible
     for _ in range(3):
         resp = client.get('/aws/admin/ratelimited', content_type='application/json')
     assert resp.status_code == 429 or resp.status_code == 200
 
-# Decorator: microservice_only (for coverage)
 def test_microservice_only_no_ip():
     from app.decorators import microservice_only
     from flask import jsonify
@@ -182,7 +183,6 @@ def test_microservice_only_no_ip():
     def dummy(pub_id, req, *a, **k):
         return "ok"
 
-    # The decorator should return a 401 Flask response when X-Real-IP header is missing
     resp = dummy("pubid", DummyRequest())
     assert isinstance(resp, tuple)
     assert resp[1] == 401

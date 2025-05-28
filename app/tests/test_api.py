@@ -7,7 +7,7 @@ from mock import patch, MagicMock
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
-from moto import mock_iam, mock_s3
+from moto import mock_aws
 
 import datetime
 
@@ -117,12 +117,11 @@ class MyTest(FlaskTestCase):
     #        data = response.get_json()
     #        self.assertEqual(pub_id, data.get('public_id'))
 
-    @mock_iam
-    @mock_s3
+    @mock_aws
     def test_create_user_with_moto(self):
         # Setup moto-mocked IAM and S3
-        iam = boto3.client("iam", region_name="us-east-1")
-        s3 = boto3.client("s3", region_name="us-east-1")
+        #iam = boto3.client("iam", region_name="us-east-1")
+        #s3 = boto3.client("s3", region_name="us-east-1")
 
         # Prepare valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}

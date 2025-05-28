@@ -27,7 +27,7 @@ def only_json():
 #def create_user_on_aws(public_id, request):
 def create_user_on_aws():
 
-    app.logger.info("arrived at /aws/user route")
+    app.logger.info("arrived at /aws/user create_user_on_aws route")
 
     # check input is valid json
     try:

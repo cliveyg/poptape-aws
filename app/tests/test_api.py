@@ -64,6 +64,10 @@ class MyTest(FlaskTestCase):
     def setUp(self):
         #self.mock_aws = mock_aws()
         #self.mock_aws.start()
+        #os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-access-key'
+        #os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-access-key-secret'
+        #os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+        #os.environ['AWS_ACCOUNT_ID'] = '123456789012'
         db.create_all()
 
     def tearDown(self):
@@ -126,18 +130,13 @@ class MyTest(FlaskTestCase):
 
     def test_create_user_with_moto(self):
         # Setup moto-mocked IAM and S3
-        os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-access-key'
-        os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-access-key-secret'
-        os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
-        os.environ['AWS_ACCOUNT_ID'] = '123456789012'
+
         #iam = boto3.client("iam", region_name="us-east-1")
         #s3 = boto3.client("s3", region_name="us-east-1")
-        session = boto3.Session(
-            aws_access_key_id='dummy-access-key',
-            aws_secret_access_key='dummy-access-key-secret',
-            aws_default_region='us-east-1',
-            aws_account_id='123456789012'
-        )
+        #session = boto3.Session(
+        #    aws_access_key_id='dummy-access-key',
+        #    aws_secret_access_key='dummy-access-key-secret',
+        #)
 
         # Prepare valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}

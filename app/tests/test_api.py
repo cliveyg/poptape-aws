@@ -1,9 +1,8 @@
 # app/tests/test_api.py
-# from mock import patch, MagicMock
 # from unittest import mock
 import uuid
 
-from mock import patch
+from mock import patch, MagicMock
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
@@ -36,16 +35,16 @@ from app import create_app, db
 from app.config import TestConfig
 from flask_testing import TestCase as FlaskTestCase
 
-#@pytest.fixture
-#def mock_s3():
-#    with patch('app.extensions.boto3.client') as mock_client:
-#        s3_mock = MagicMock()
-#        s3_mock.create_bucket.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-#        s3_mock.put_bucket_policy.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-#        s3_mock.put_bucket_cors.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-#        s3_mock.delete_public_access_block.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-#        mock_client.return_value = s3_mock
-#        yield s3_mock
+@pytest.fixture
+def mock_s3():
+    with patch('app.extensions.boto3.client') as mock_client:
+        s3_mock = MagicMock()
+        s3_mock.create_bucket.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
+        s3_mock.put_bucket_policy.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
+        s3_mock.put_bucket_cors.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
+        s3_mock.delete_public_access_block.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
+        mock_client.return_value = s3_mock
+        yield s3_mock
 
 ###############################################################################
 #                         flask test case instance                            #

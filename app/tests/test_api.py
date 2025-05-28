@@ -155,6 +155,25 @@ class MyTest(FlaskTestCase):
         )
 
         self.assertTrue(response.status_code, 400)
-        print('=====================================================')
-        print(response.get_data(as_text=True))
-        self.assertTrue("Fail" in response.get_data(as_text=True))
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertTrue(returned_data['message'], "Check ya inputs mate.")
+        self.assertTrue(returned_data['error'], "Additional properties are not allowed ('validjson' was unexpected)")
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_json_schema_check_2(self):
+
+        payload = {"public_id": "not a uuid"}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertTrue(returned_data['message'], "Check ya inputs mate.")
+        print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+        print(returned_data)
+        self.assertTrue(returned_data['error'], "Additional properties are not allowed ('validjson' was unexpected)")

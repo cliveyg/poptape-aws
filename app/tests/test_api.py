@@ -8,6 +8,7 @@ from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
 from moto import mock_aws
+import boto3
 import os
 
 import datetime
@@ -131,8 +132,12 @@ class MyTest(FlaskTestCase):
         os.environ['AWS_ACCOUNT_ID'] = '123456789012'
         #iam = boto3.client("iam", region_name="us-east-1")
         #s3 = boto3.client("s3", region_name="us-east-1")
-
-
+        session = boto3.Session(
+            aws_access_key_id='dummy-access-key',
+            aws_secret_access_key='dummy-access-key-secret',
+            aws_default_region='us-east-1',
+            aws_account_id='123456789012'
+        )
 
         # Prepare valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}

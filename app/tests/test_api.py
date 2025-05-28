@@ -134,4 +134,4 @@ class MyTest(FlaskTestCase):
         )
 
         self.assertTrue(response.status_code, 201)
-        self.assertTrue(response.get('message'), "User created on AWS"
+        self.assertTrue(response.get('message'), "User created on AWS")

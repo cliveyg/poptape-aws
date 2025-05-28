@@ -7,6 +7,7 @@ from mock import patch, MagicMock
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
+from moto import mock_iam, mock_s3
 
 import datetime
 
@@ -37,16 +38,6 @@ from app import create_app, db
 from app.config import TestConfig
 from flask_testing import TestCase as FlaskTestCase
 
-@pytest.fixture
-def mock_s3():
-    with patch('app.extensions.boto3.client') as mock_client:
-        s3_mock = MagicMock()
-        s3_mock.create_bucket.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-        s3_mock.put_bucket_policy.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-        s3_mock.put_bucket_cors.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-        s3_mock.delete_public_access_block.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
-        mock_client.return_value = s3_mock
-        yield s3_mock
 
 ###############################################################################
 #                         flask test case instance                            #
@@ -116,12 +107,31 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
-    def test_create_user_success(self):
-        pubid = str(uuid.uuid4())
-        payload = {'public_id': pubid}
+    #def test_create_user_success(self):
+    #    pub_id = str(uuid.uuid4())
+    #    payload = {'public_id': pub_id}
+    #    headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+    #    with patch('app.main.create_user.create_aws_user', return_value=True):
+    #        response = self.client.post('/aws/user', json=payload, headers=headers)
+    #        self.assertEqual(response.status_code,201)
+    #        data = response.get_json()
+    #        self.assertEqual(pub_id, data.get('public_id'))
+
+    @mock_iam
+    @mock_s3
+    def test_create_user_with_moto(self):
+        # Setup moto-mocked IAM and S3
+        iam = boto3.client("iam", region_name="us-east-1")
+        s3 = boto3.client("s3", region_name="us-east-1")
+
+        # Prepare valid payload with a random UUID
+        payload = {"public_id": str(uuid.uuid4())}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-        with patch('app.main.create_user.create_aws_user', return_value=True):
-            response = self.client.post('/aws/user', json=payload, headers=headers)
-            self.assertEqual(response.status_code,201)
-            data = response.get_json()
-            self.assertEqual(pubid, data.get('public_id'))
+        response = self.client.post(
+            "/aws/user",
+            json=payload,
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 201)
+        self.assertTrue(response.get('message'), "User created on AWS"

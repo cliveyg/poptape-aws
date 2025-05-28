@@ -113,25 +113,8 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
-    #def test_create_user_success(self):
-    #    pub_id = str(uuid.uuid4())
-    #    payload = {'public_id': pub_id}
-    #    headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-    #    with patch('app.main.create_user.create_aws_user', return_value=True):
-    #        response = self.client.post('/aws/user', json=payload, headers=headers)
-    #        self.assertEqual(response.status_code,201)
-    #        data = response.get_json()
-    #        self.assertEqual(pub_id, data.get('public_id'))
-
-    def test_create_user_with_moto(self):
+    def test_create_user_success(self):
         # Setup moto-mocked IAM and S3
-
-        #iam = boto3.client("iam", region_name="us-east-1")
-        #s3 = boto3.client("s3", region_name="us-east-1")
-        #session = boto3.Session(
-        #    aws_access_key_id='dummy-access-key',
-        #    aws_secret_access_key='dummy-access-key-secret',
-        #)
 
         # Prepare valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}

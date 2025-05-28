@@ -1,19 +1,16 @@
 # app/tests/test_api.py
 # from unittest import mock
 import json
+import os
 
 import uuid
-import pytest
 
-from mock import patch, MagicMock
+from mock import patch
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
 from moto import mock_aws
-import boto3
-import os
-
-import datetime
+from pathlib import Path
 
 # have to mock the require_access_level decorator here before it
 # gets attached to any classes or functions
@@ -113,27 +110,9 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
-    #def test_create_user_success(self):
-    #    pub_id = str(uuid.uuid4())
-    #    payload = {'public_id': pub_id}
-    #    headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-    #    with patch('app.main.create_user.create_aws_user', return_value=True):
-    #        response = self.client.post('/aws/user', json=payload, headers=headers)
-    #        self.assertEqual(response.status_code,201)
-    #        data = response.get_json()
-    #        self.assertEqual(pub_id, data.get('public_id'))
+    def test_create_user_success(self):
 
-    def test_create_user_with_moto(self):
-        # Setup moto-mocked IAM and S3
-
-        #iam = boto3.client("iam", region_name="us-east-1")
-        #s3 = boto3.client("s3", region_name="us-east-1")
-        #session = boto3.Session(
-        #    aws_access_key_id='dummy-access-key',
-        #    aws_secret_access_key='dummy-access-key-secret',
-        #)
-
-        # Prepare valid payload with a random UUID
+        # valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
@@ -144,3 +123,116 @@ class MyTest(FlaskTestCase):
 
         self.assertTrue(response.status_code, 201)
         self.assertTrue("User created on AWS" in response.get_data(as_text=True))
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_invalid_input(self):
+
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data='notjson',
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        self.assertTrue("Check ya inputs mate. Yer not valid, Jason" in response.get_data(as_text=True))
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_json_schema_check_1(self):
+
+        payload = {"validjson": "some stuff"}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(returned_data['message'], "Check ya inputs mate.")
+        self.assertEqual(returned_data['error'], "Additional properties are not allowed ('validjson' was unexpected)")
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_json_schema_check_2(self):
+
+        payload = {"public_id": "not a uuid"}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(returned_data['message'], "Check ya inputs mate.")
+        self.assertEqual(returned_data['error'], "'not a uuid' is too short")
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_missing_standard_policy_file(self):
+
+        # rename the standardpolicy file so the api call fails
+        mod_path = Path(__file__).parent
+        relpath = '../main/standardpolicy.txt'
+        renamed = '../main/_standardpolicy.txt'
+        relative_filepath = (mod_path / relpath).resolve()
+        renamed_filepath = (mod_path / renamed).resolve()
+
+        if Path.exists(relative_filepath):
+            os.rename(relative_filepath, renamed_filepath)
+
+        # valid payload with a random UUID
+        payload = {"public_id": str(uuid.uuid4())}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 500)
+        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
+
+        os.rename(renamed_filepath, relative_filepath)
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_bad_standard_policy_file(self):
+
+        # rename the standardpolicy file so the api call fails
+        mod_path = Path(__file__).parent
+        relpath = '../main/standardpolicy.txt'
+        renamed = '../main/GDstandardpolicy.txt'
+        relative_filepath = (mod_path / relpath).resolve()
+        renamed_filepath = (mod_path / renamed).resolve()
+
+        if Path.exists(relative_filepath):
+            os.rename(relative_filepath, renamed_filepath)
+
+        badfile = 'bad_aws_policy_files/bad_standardpolicy.txt'
+        badfile_filepath = (mod_path / badfile).resolve()
+
+        if Path.exists(relative_filepath):
+            os.rename(relative_filepath, renamed_filepath)
+
+        if Path.exists(badfile_filepath):
+            os.rename(badfile_filepath, relative_filepath)
+
+        # valid payload with a random UUID
+        payload = {"public_id": str(uuid.uuid4())}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 500)
+        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
+
+        os.rename(renamed_filepath, relative_filepath)

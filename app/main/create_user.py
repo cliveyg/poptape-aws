@@ -25,7 +25,6 @@ def create_aws_user(public_id):
     # personalise policy
 
     policy_data = None
-    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
     #TODO: put this in separate function and/or get it from the db
     try:
@@ -71,7 +70,7 @@ def create_aws_user(public_id):
         app.logger.error('Failed to create policy for AWS user: '+str(e))
         return False
 
-    if policy_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
+    if policy_response['ResponseMetadata']['HTTPStatusCode'] != 200:
         app.logger.error('Problem creating policy for AWS user. Status code is ['+policy_response.status_code+']')
         return False
 
@@ -86,7 +85,7 @@ def create_aws_user(public_id):
         app.logger.error('Failed to create access key for AWS user: '+str(e))
         return False    
     
-    if key_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
+    if key_response['ResponseMetadata']['HTTPStatusCode'] != 200:
         app.logger.error('Problem creating access key for AWS user. \
                          Status code is ['+key_response.status_code+']')
         return False
@@ -127,8 +126,7 @@ def create_aws_user(public_id):
     #      info in it's systems. waiting whilst hacky and bad ux should help
     time.sleep(2)
     app.logger.debug("attempting to update bucket settings...")
-    app.logger.debug("AWS ACC ID IS [%s]", app.config['AWS_ACCOUNT_ID'])
-    app.logger.debug("AWS ACCESS KEY ID IS [%s]", app.config['AWS_ACCESS_KEY_ID'])
+
     try:
         app.s3.delete_public_access_block(
             Bucket = collection_name.lower(),

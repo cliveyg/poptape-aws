@@ -68,6 +68,7 @@ jobs:
           export AWS_SESSION_TOKEN='testing'
           export AWS_DEFAULT_REGION='us-east-1'
           export AWS_ACCOUNT_ID='123456789012'
+          export FERNET_KEY='90gFHJotmwCTIzjwvciZ2XuQwGGqtNsZwXVv6TB7LhE='
           coverage run -m --omit="*/test*" pytest -v --junitxml=junit.xml --html=report.html
           coverage xml          
           echo "$(coverage report -m )"

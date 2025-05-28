@@ -127,6 +127,8 @@ def create_aws_user(public_id):
     #      info in it's systems. waiting whilst hacky and bad ux should help
     time.sleep(2)
     app.logger.debug("attempting to update bucket settings...")
+    app.logger.debug("AWS ACC ID IS "+app.config['AWS_ACCOUNT_ID'])
+    app.logger.debug("AWS ACCESS KEY ID IS "+app.config['AWS_ACCESS_KEY_ID'])
     try:
         app.s3.delete_public_access_block(
             Bucket = collection_name.lower(),

@@ -132,6 +132,8 @@ class MyTest(FlaskTestCase):
         #iam = boto3.client("iam", region_name="us-east-1")
         #s3 = boto3.client("s3", region_name="us-east-1")
 
+
+
         # Prepare valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }

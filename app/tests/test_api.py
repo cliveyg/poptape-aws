@@ -174,6 +174,4 @@ class MyTest(FlaskTestCase):
         self.assertTrue(response.status_code, 400)
         returned_data = json.loads(response.get_data(as_text=True))
         self.assertEqual(returned_data['message'], "Check ya inputs mate.")
-        print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-        print(returned_data)
-        self.assertEqual(returned_data['error'], "Additional properties are not allowed ('validjson' was unexpected)")
+        self.assertEqual(returned_data['error'], "'not a uuid' is too short")

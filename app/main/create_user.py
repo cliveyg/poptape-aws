@@ -25,7 +25,6 @@ def create_aws_user(public_id):
     # personalise policy
 
     policy_data = None
-    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
     #TODO: put this in separate function and/or get it from the db
     try:

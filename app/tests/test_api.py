@@ -110,5 +110,5 @@ class MyTest(FlaskTestCase):
 
     def test_generate_presigned_urls_invalid_json(self):
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-        response = self.post('/aws/urls', data="notjson", headers=headers)
+        response = self.client.post('/aws/urls', data="notjson", headers=headers)
         self.assertEqual(response.status_code, 400)

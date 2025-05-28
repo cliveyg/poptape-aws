@@ -52,6 +52,8 @@ def is_valid_uuid(uuid_to_test, version=4):
         return False
     return True
 
+
+@mock_aws
 class MyTest(FlaskTestCase):
 
     def create_app(self):
@@ -59,14 +61,14 @@ class MyTest(FlaskTestCase):
         return app
 
     def setUp(self):
-        self.mock_aws = mock_aws()
-        self.mock_aws.start()
+        #self.mock_aws = mock_aws()
+        #self.mock_aws.start()
         db.create_all()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-        self.mock_aws.stop()
+        #self.mock_aws.stop()
 
 ###############################################################################
 #                                tests                                        #

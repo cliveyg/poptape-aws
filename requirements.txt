@@ -29,6 +29,7 @@ Mako
 MarkupSafe
 mock
 more-itertools
+moto
 packaging
 pluggy
 psycopg2

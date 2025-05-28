@@ -8,6 +8,7 @@ from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
 from moto import mock_aws
+import os
 
 import datetime
 
@@ -120,6 +121,10 @@ class MyTest(FlaskTestCase):
     @mock_aws
     def test_create_user_with_moto(self):
         # Setup moto-mocked IAM and S3
+        os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-access-key'
+        os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-access-key-secret'
+        os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+        os.environ['AWS_ACCOUNT_ID'] = '01234567890'
         #iam = boto3.client("iam", region_name="us-east-1")
         #s3 = boto3.client("s3", region_name="us-east-1")
 

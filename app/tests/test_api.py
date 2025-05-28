@@ -58,12 +58,15 @@ class MyTest(FlaskTestCase):
         app = create_app(TestConfig)
         return app
 
-        def setUp(self):
-            db.create_all()
+    def setUp(self):
+        self.mock_aws = mock_aws()
+        self.mock_aws.start()
+        db.create_all()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+        self.mock_aws.stop()
 
 ###############################################################################
 #                                tests                                        #
@@ -118,7 +121,6 @@ class MyTest(FlaskTestCase):
     #        data = response.get_json()
     #        self.assertEqual(pub_id, data.get('public_id'))
 
-    @mock_aws
     def test_create_user_with_moto(self):
         # Setup moto-mocked IAM and S3
         os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-access-key'

@@ -128,7 +128,7 @@ class MyTest(FlaskTestCase):
         os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-access-key'
         os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-access-key-secret'
         os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
-        os.environ['AWS_ACCOUNT_ID'] = '01234567890'
+        os.environ['AWS_ACCOUNT_ID'] = '123456789012'
         #iam = boto3.client("iam", region_name="us-east-1")
         #s3 = boto3.client("s3", region_name="us-east-1")
 

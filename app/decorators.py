@@ -13,7 +13,7 @@ load_dotenv()
 # these are separate from the views so we can mock them more easily  in tests
 # -----------------------------------------------------------------------------
 
-def microservice_only(request):
+def microservice_only(request): # pragma: no cover
     def actual_decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):    

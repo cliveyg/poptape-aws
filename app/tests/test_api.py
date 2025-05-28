@@ -127,3 +127,34 @@ class MyTest(FlaskTestCase):
 
         self.assertTrue(response.status_code, 201)
         self.assertTrue("User created on AWS" in response.get_data(as_text=True))
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_invalid_input(self):
+
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data='notjson',
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        self.assertTrue("Check ya inputs mate. Yer not valid, Jason" in response.get_data(as_text=True))
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_json_schema_check_1(self):
+
+        payload = {"validjson": "some stuff"}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        print('=====================================================')
+        print(response.get_data(as_text=True))
+        self.assertTrue("Fail" in response.get_data(as_text=True))

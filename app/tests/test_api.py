@@ -113,3 +113,15 @@ class MyTest(FlaskTestCase):
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post('/aws/urls', data="notjson", headers=headers)
         self.assertEqual(response.status_code, 400)
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_success(self):
+        pubid = str(uuid.uuid4())
+        payload = {'public_id': pubid}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        with patch('app.main.create_user.create_aws_user', return_value=True):
+            response = self.client.post('/aws/user', json=payload, headers=headers)
+            self.assertEqual(response.status_code,201)
+            data = response.get_json()
+            self.assertEqual(pubid, data.get('public_id'))

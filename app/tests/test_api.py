@@ -1,5 +1,7 @@
 # app/tests/test_api.py
 # from unittest import mock
+import json
+
 import uuid
 import pytest
 
@@ -62,18 +64,11 @@ class MyTest(FlaskTestCase):
         return app
 
     def setUp(self):
-        #self.mock_aws = mock_aws()
-        #self.mock_aws.start()
-        #os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-access-key'
-        #os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-access-key-secret'
-        #os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
-        #os.environ['AWS_ACCOUNT_ID'] = '123456789012'
         db.create_all()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-        #self.mock_aws.stop()
 
 ###############################################################################
 #                                tests                                        #
@@ -143,7 +138,7 @@ class MyTest(FlaskTestCase):
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
             "/aws/user",
-            json=payload,
+            data=json.dumps(payload),
             headers=headers,
         )
 

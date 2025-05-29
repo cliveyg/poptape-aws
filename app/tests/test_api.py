@@ -199,3 +199,40 @@ class MyTest(FlaskTestCase):
         self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
 
         os.rename(renamed_filepath, relative_filepath)
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_bad_standard_policy_file(self):
+
+        # rename the standardpolicy file so the api call fails
+        mod_path = Path(__file__).parent
+        relpath = '../main/standardpolicy.txt'
+        renamed = '../main/GDstandardpolicy.txt'
+        relative_filepath = (mod_path / relpath).resolve()
+        renamed_filepath = (mod_path / renamed).resolve()
+
+        if Path.exists(relative_filepath):
+            os.rename(relative_filepath, renamed_filepath)
+
+        badfile = 'bad_aws_policy_files/bad_standardpolicy.txt'
+        badfile_filepath = (mod_path / badfile).resolve()
+
+        if Path.exists(relative_filepath):
+            os.rename(relative_filepath, renamed_filepath)
+
+        if Path.exists(badfile_filepath):
+            os.rename(badfile_filepath, relative_filepath)
+
+        # valid payload with a random UUID
+        payload = {"public_id": str(uuid.uuid4())}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 500)
+        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
+
+        os.rename(renamed_filepath, relative_filepath)

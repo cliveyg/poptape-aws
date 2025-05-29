@@ -70,7 +70,7 @@ def create_aws_user(public_id):
         app.logger.error('Failed to create policy for AWS user: '+str(e))
         return False
 
-    if policy_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
+    if policy_response['ResponseMetadata']['HTTPStatusCode'] != 200:
         app.logger.error('Problem creating policy for AWS user. Status code is ['+policy_response.status_code+']')
         return False
 

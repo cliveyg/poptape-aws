@@ -1,4 +1,4 @@
-![API Tests](https://github.com/cliveyg/poptape-aws/actions/workflows/api-test.yml/badge.svg)
+![API Tests](https://github.com/cliveyg/poptape-aws/actions/workflows/api-test.yml/badge.svg) ![Tests passed](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/cliveyg/7f6ea2393c1317b5d78b8e60c35ddf18/raw/c4d30936a84cbc8ceaa23af9d6b59a8d1be0f356/poptape-aws-junit-tests.json&label=Tests) ![Test coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/cliveyg/7f6ea2393c1317b5d78b8e60c35ddf18/raw/c4d30936a84cbc8ceaa23af9d6b59a8d1be0f356/poptape-aws-cobertura-coverage.json&label=Test%20Coverage)
 
 # poptape-aws
 AWS microservice written in Python Flask with a postgres database backend.

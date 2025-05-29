@@ -267,19 +267,18 @@ class MyTest(FlaskTestCase):
         print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
         print(returned_data)
         self.assertEqual(returned_data['public_id'], public_id)
+        self.assertEqual(returned_data['aws_UserName'], public_id)
 
     # -----------------------------------------------------------------------------
 
     def test_get_aws_routes(self):
 
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-        response = self.client.post(
+        response = self.client.get(
             "/aws",
             headers=headers,
         )
 
         self.assertTrue(response.status_code, 200)
         returned_data = json.loads(response.get_data(as_text=True))
-        print('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
-        print(returned_data)
         self.assertTrue(len(returned_data['endpoints']), 6)

@@ -50,7 +50,7 @@ def create_aws_user(public_id):
         app.logger.error('Failed to create AWS user: '+str(e))
         return False
 
-    if create_response['ResponseMetadata']['HTTPStatusCode'] !=  200:
+    if create_response['ResponseMetadata']['HTTPStatusCode'] != 200:
         app.logger.error('Problem creating AWS user. Status code is ['+create_response.status_code+']')
         return False
 

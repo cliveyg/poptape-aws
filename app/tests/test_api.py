@@ -1,11 +1,12 @@
 # app/tests/test_api.py
-# from unittest import mock
+from unittest.mock import Mock
 import json
 import os
 
 import uuid
 
 from mock import patch
+from app.main.create_user import create_aws_user
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
@@ -126,11 +127,13 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
-    def test_boto_fail(self):
+    def test_create_user_fail(self):
 
+        public_id = str(uuid.uuid4())
+        app.main.create_user.create_aws_user = Mock()
+        create_aws_user.return_value = False
         # valid payload with a random UUID
-        os.environ.pop('AWS_SECRET_ACCESS_KEY')
-        payload = { "public_id": str(uuid.uuid4()) }
+        payload = {"public_id": public_id}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
             "/aws/user",
@@ -138,9 +141,8 @@ class MyTest(FlaskTestCase):
             headers=headers,
         )
 
-        self.assertTrue(response.status_code, 201)
-        self.assertTrue("User created on AWS" in response.get_data(as_text=True))
-        os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
+        self.assertTrue(response.status_code, 500)
+        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
 
     # -----------------------------------------------------------------------------
 

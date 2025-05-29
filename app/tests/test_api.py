@@ -130,7 +130,7 @@ class MyTest(FlaskTestCase):
     def test_create_user_fail(self):
 
         public_id = str(uuid.uuid4())
-        app.main.create_user.create_aws_user = Mock()
+        create_aws_user = Mock()
         create_aws_user.return_value = False
         # valid payload with a random UUID
         payload = {"public_id": public_id}

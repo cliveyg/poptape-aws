@@ -295,6 +295,8 @@ class MyTest(FlaskTestCase):
         )
 
         self.assertTrue(response.status_code, 500)
+        print("££££££££££££££££££££££££££££££££££££££££££")
+        print(response.get_data(as_text=True))
         self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
 
         os.rename(renamed_filepath, relative_filepath)

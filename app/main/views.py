@@ -153,7 +153,7 @@ def system_running():
 @require_access_level(5, request)
 @limiter.limit("0/minute")
 def rate_limted(public_id, request):
-    return jsonify({ 'message': 'should never see this' }), 200
+    return jsonify({ 'message': 'should never see this' }), 200 # pragma: no cover
 
 # -----------------------------------------------------------------------------
 # route for returning all routes on microservice

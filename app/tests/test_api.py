@@ -269,6 +269,18 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
+    def test_get_user_fail_404(self):
+
+        # then fetch user details from db
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.get(
+            "/aws/user",
+            headers=headers,
+        )
+        self.assertTrue(response.status_code, 404)
+
+    # -----------------------------------------------------------------------------
+
     def test_get_user_fail_no_token(self):
 
         # create a user first

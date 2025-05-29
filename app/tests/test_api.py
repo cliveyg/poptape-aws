@@ -242,7 +242,7 @@ class MyTest(FlaskTestCase):
 
     def test_get_user_success(self):
 
-        # create a user first\
+        # create a user first
         public_id = getSpecificPublicID()
         payload = {"public_id": public_id}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
@@ -264,10 +264,9 @@ class MyTest(FlaskTestCase):
 
         self.assertTrue(response.status_code, 200)
         returned_data = json.loads(response.get_data(as_text=True))
-        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        print(returned_data)
         self.assertEqual(returned_data['public_id'], public_id)
-        self.assertEqual(returned_data['aws_UserName'], public_id)
+        self.assertEqual(returned_data['aws_UserName'], "ze3cf14c3df064360af93b445c3d78d9e")
+        self.assertEqual(returned_data['aws_PolicyName'], "poptape_aws_standard_user_policy")
 
     # -----------------------------------------------------------------------------
 

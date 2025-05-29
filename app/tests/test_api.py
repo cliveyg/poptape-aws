@@ -237,7 +237,6 @@ class MyTest(FlaskTestCase):
 
         os.rename(renamed_filepath, relative_filepath)
 
-
     # -----------------------------------------------------------------------------
 
     def test_get_user_success(self):
@@ -267,6 +266,32 @@ class MyTest(FlaskTestCase):
         self.assertEqual(returned_data['public_id'], public_id)
         self.assertEqual(returned_data['aws_UserName'], "ze3cf14c3df064360af93b445c3d78d9e")
         self.assertEqual(returned_data['aws_PolicyName'], "poptape_aws_standard_user_policy")
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_user_fail_no_token(self):
+
+        # create a user first
+        public_id = getSpecificPublicID()
+        payload = {"public_id": public_id}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 201)
+        self.assertTrue("User created on AWS" in response.get_data(as_text=True))
+
+        # then fetch user details from db
+        headers = { 'Content-type': 'application/json' }
+        response = self.client.get(
+            "/aws/user",
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 401)
 
     # -----------------------------------------------------------------------------
 

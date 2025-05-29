@@ -176,7 +176,7 @@ class MyTest(FlaskTestCase):
     def test_create_user_fail_missing_standard_policy_file(self):
 
         mod_path = Path(__file__).parent
-        relpath = 'main/standardpolicy.txt'
+        relpath = '../main/standardpolicy.txt'
         relative_filepath = (mod_path / relpath).resolve()
 
         print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')

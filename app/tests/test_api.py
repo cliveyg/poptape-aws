@@ -362,3 +362,34 @@ class MyTest(FlaskTestCase):
             headers=headers,
         )
         self.assertTrue(response.status_code, 201)
+
+    # -----------------------------------------------------------------------------
+
+    def test_fail_get_list_of_presigned_urls_bad_json(self):
+
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/urls",
+            data="not json",
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        self.assertTrue("Check ya inputs mate. Yer not valid, Jason" in response.get_data(as_text=True))
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_list_of_presigned_urls_fail_json_validation_1(self):
+
+        payload = { 'objects': [getPublicID(), getPublicID()], 'validjson': 'blah' }
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/urls",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 400)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(returned_data['message'], "Check ya inputs mate.")
+        self.assertEqual(returned_data['error'], "Additional properties are not allowed ('validjson' was unexpected)")

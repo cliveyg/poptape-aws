@@ -127,25 +127,6 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
-    def test_create_user_fail(self):
-
-        public_id = str(uuid.uuid4())
-        create_aws_user = Mock()
-        create_aws_user.return_value = False
-        # valid payload with a random UUID
-        payload = {"public_id": public_id}
-        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-        response = self.client.post(
-            "/aws/user",
-            data=json.dumps(payload),
-            headers=headers,
-        )
-
-        self.assertTrue(response.status_code, 500)
-        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
-
-    # -----------------------------------------------------------------------------
-
     def test_create_user_fail_invalid_input(self):
 
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }

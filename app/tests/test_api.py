@@ -292,6 +292,34 @@ class MyTest(FlaskTestCase):
         )
 
         self.assertTrue(response.status_code, 401)
+    # -----------------------------------------------------------------------------
+
+    def test_get_user_based_on_id(self):
+
+        # create a user first
+        public_id = getSpecificPublicID()
+        payload = {"public_id": public_id}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 201)
+        self.assertTrue("User created on AWS" in response.get_data(as_text=True))
+
+        # then fetch user details from db
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.get(
+            "/aws/user/"+public_id,
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 200)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(returned_data['public_id'], public_id)
+        self.assertEqual(returned_data['aws_PolicyName'], "poptape_aws_standard_user_policy")
 
     # -----------------------------------------------------------------------------
 

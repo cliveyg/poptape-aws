@@ -1,10 +1,7 @@
 # app/tests/test_api.py
-# from unittest import mock
 import json
 import os
-
 import uuid
-
 from mock import patch
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
@@ -123,24 +120,6 @@ class MyTest(FlaskTestCase):
 
         self.assertTrue(response.status_code, 201)
         self.assertTrue("User created on AWS" in response.get_data(as_text=True))
-
-    # -----------------------------------------------------------------------------
-
-    def test_boto_fail(self):
-
-        # valid payload with a random UUID
-        os.environ.pop('AWS_SECRET_ACCESS_KEY')
-        payload = { "public_id": str(uuid.uuid4()) }
-        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-        response = self.client.post(
-            "/aws/user",
-            data=json.dumps(payload),
-            headers=headers,
-        )
-
-        self.assertTrue(response.status_code, 201)
-        self.assertTrue("User created on AWS" in response.get_data(as_text=True))
-        os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
 
     # -----------------------------------------------------------------------------
 

@@ -1,19 +1,16 @@
 # app/tests/test_api.py
 # from unittest import mock
 import json
+import os
 
 import uuid
-import pytest
 
-from mock import patch, MagicMock
+from mock import patch
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
 from moto import mock_aws
-import boto3
-import os
-
-import datetime
+from pathlib import Path
 
 # have to mock the require_access_level decorator here before it
 # gets attached to any classes or functions
@@ -114,9 +111,8 @@ class MyTest(FlaskTestCase):
     # -----------------------------------------------------------------------------
 
     def test_create_user_success(self):
-        # Setup moto-mocked IAM and S3
 
-        # Prepare valid payload with a random UUID
+        # valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
@@ -175,3 +171,31 @@ class MyTest(FlaskTestCase):
         returned_data = json.loads(response.get_data(as_text=True))
         self.assertEqual(returned_data['message'], "Check ya inputs mate.")
         self.assertEqual(returned_data['error'], "'not a uuid' is too short")
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_missing_standard_policy_file(self):
+
+        # rename the standardpolicy file so the api call fails
+        mod_path = Path(__file__).parent
+        relpath = '../main/standardpolicy.txt'
+        renamed = '../main/_standardpolicy.txt'
+        relative_filepath = (mod_path / relpath).resolve()
+        renamed_filepath = (mod_path / renamed).resolve()
+
+        if Path.exists(relative_filepath):
+            os.rename(relative_filepath, renamed_filepath)
+
+        # valid payload with a random UUID
+        payload = {"public_id": str(uuid.uuid4())}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 500)
+        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
+
+        os.rename(renamed_filepath, relative_filepath)

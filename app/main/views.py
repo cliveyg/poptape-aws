@@ -132,6 +132,8 @@ def generate_presigned_urls(public_id, request):
             response['fields']  = resp['fields']
             #response[object_id] = resp    
             urls.append(response)
+        else:
+            return jsonify({ 'message': 'Unable to generate pre-signed URLs' }), 500
 
     return jsonify({ 'aws_urls': urls }), 201
 

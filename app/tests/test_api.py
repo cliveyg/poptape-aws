@@ -264,6 +264,8 @@ class MyTest(FlaskTestCase):
 
         self.assertTrue(response.status_code, 200)
         returned_data = json.loads(response.get_data(as_text=True))
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print(returned_data)
         self.assertEqual(returned_data['public_id'], public_id)
 
     # -----------------------------------------------------------------------------
@@ -278,4 +280,6 @@ class MyTest(FlaskTestCase):
 
         self.assertTrue(response.status_code, 200)
         returned_data = json.loads(response.get_data(as_text=True))
+        print('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+        print(returned_data)
         self.assertTrue(len(returned_data['endpoints']), 6)

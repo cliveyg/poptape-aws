@@ -349,3 +349,16 @@ class MyTest(FlaskTestCase):
         self.assertTrue(response.status_code, 200)
         returned_data = json.loads(response.get_data(as_text=True))
         self.assertTrue(len(returned_data['endpoints']), 6)
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_list_of_presigned_urls_ok(self):
+
+        payload = { 'objects': [getPublicID(), getPublicID()] }
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/urls",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+        self.assertTrue(response.status_code, 201)

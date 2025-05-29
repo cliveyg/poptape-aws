@@ -1,12 +1,8 @@
 # app/tests/test_api.py
-from unittest.mock import Mock
 import json
 import os
-
 import uuid
-
 from mock import patch
-from app.main.create_user import create_aws_user
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify

@@ -3,17 +3,13 @@
 import json
 
 import uuid
-import pytest
 
-from mock import patch, MagicMock
+from mock import patch
 from functools import wraps
 from .fixtures import getPublicID, getSpecificPublicID
 from flask import jsonify
 from moto import mock_aws
-import boto3
-import os
-
-import datetime
+from pathlib import Path
 
 # have to mock the require_access_level decorator here before it
 # gets attached to any classes or functions
@@ -114,9 +110,8 @@ class MyTest(FlaskTestCase):
     # -----------------------------------------------------------------------------
 
     def test_create_user_success(self):
-        # Setup moto-mocked IAM and S3
 
-        # Prepare valid payload with a random UUID
+        # valid payload with a random UUID
         payload = {"public_id": str(uuid.uuid4())}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
@@ -175,3 +170,31 @@ class MyTest(FlaskTestCase):
         returned_data = json.loads(response.get_data(as_text=True))
         self.assertEqual(returned_data['message'], "Check ya inputs mate.")
         self.assertEqual(returned_data['error'], "'not a uuid' is too short")
+
+    # -----------------------------------------------------------------------------
+
+    def test_create_user_fail_missing_standard_policy_file(self):
+
+        mod_path = Path(__file__).parent
+        relpath = 'main/standardpolicy.txt'
+        relative_filepath = (mod_path / relpath).resolve()
+
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print('CWD is [%s]', Path.cwd())
+        print(relative_filepath)
+        if Path.exists(relative_filepath):
+            print('File exists!')
+        else:
+            print('File not found :(')
+
+        # valid payload with a random UUID
+        payload = {"pblic_id": str(uuid.uuid4())}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 201)
+        self.assertTrue("User created on AWS" in response.get_data(as_text=True))

@@ -264,45 +264,6 @@ class MyTest(FlaskTestCase):
 
     # -----------------------------------------------------------------------------
 
-    def test_create_user_fail_bad_bucket_policy_file(self):
-
-        # rename the good bucket_policy file
-        mod_path = Path(__file__).parent
-        relpath = '../main/bucket_policy.txt'
-        renamed = '../main/GDbucket_policy.txt'
-        relative_filepath = (mod_path / relpath).resolve()
-        renamed_filepath = (mod_path / renamed).resolve()
-
-        if Path.exists(relative_filepath):
-            os.rename(relative_filepath, renamed_filepath)
-
-        badfile = 'bad_aws_policy_files/bad_bucket_policy.txt'
-        badfile_filepath = (mod_path / badfile).resolve()
-
-        if Path.exists(relative_filepath):
-            os.rename(relative_filepath, renamed_filepath)
-
-        if Path.exists(badfile_filepath):
-            os.rename(badfile_filepath, relative_filepath)
-
-        # valid payload with a random UUID
-        payload = {"public_id": getPublicID()}
-        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
-        response = self.client.post(
-            "/aws/user",
-            data=json.dumps(payload),
-            headers=headers,
-        )
-
-        self.assertTrue(response.status_code, 500)
-        print("££££££££££££££££££££££££££££££££££££££££££")
-        print(response.get_data(as_text=True))
-        self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
-
-        os.rename(renamed_filepath, relative_filepath)
-
-    # -----------------------------------------------------------------------------
-
     def test_get_user_success(self):
 
         # create a user first

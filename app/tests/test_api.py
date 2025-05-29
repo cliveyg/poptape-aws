@@ -292,6 +292,7 @@ class MyTest(FlaskTestCase):
         )
 
         self.assertTrue(response.status_code, 401)
+
     # -----------------------------------------------------------------------------
 
     def test_get_user_based_on_id(self):
@@ -320,6 +321,20 @@ class MyTest(FlaskTestCase):
         returned_data = json.loads(response.get_data(as_text=True))
         self.assertEqual(returned_data['public_id'], public_id)
         self.assertEqual(returned_data['aws_PolicyName'], "poptape_aws_standard_user_policy")
+
+    # -----------------------------------------------------------------------------
+
+    def test_fail_get_user_based_on_id(self):
+
+        public_id = getPublicID()
+        # then fetch user details from db
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.get(
+            "/aws/user/"+public_id,
+            headers=headers,
+            )
+
+        self.assertTrue(response.status_code, 404)
 
     # -----------------------------------------------------------------------------
 

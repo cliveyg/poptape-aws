@@ -224,7 +224,7 @@ class MyTest(FlaskTestCase):
             os.rename(badfile_filepath, relative_filepath)
 
         # valid payload with a random UUID
-        payload = {"public_id": str(uuid.uuid4())}
+        payload = {"public_id": getPublicID()}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
             "/aws/user",
@@ -265,3 +265,17 @@ class MyTest(FlaskTestCase):
         self.assertTrue(response.status_code, 200)
         returned_data = json.loads(response.get_data(as_text=True))
         self.assertEqual(returned_data['public_id'], public_id)
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_aws_routes(self):
+
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws",
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 200)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertTrue(len(returned_data['endpoints']), 6)

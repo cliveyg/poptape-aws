@@ -60,6 +60,8 @@ def get_user_detail(public_id, request):
     if not aws_details:
         return jsonify({ 'message': 'Where dey gone' }), 404
 
+    app.logger.debug(aws_details)
+
     user_data = {}
     user_data['public_id'] = aws_details.public_id
     user_data['aws_CreateUserRequestId'] = aws_details.aws_CreateUserRequestId

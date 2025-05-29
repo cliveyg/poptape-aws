@@ -236,3 +236,32 @@ class MyTest(FlaskTestCase):
         self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
 
         os.rename(renamed_filepath, relative_filepath)
+
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_user_success(self):
+
+        # create a user first\
+        public_id = getSpecificPublicID()
+        payload = {"public_id": public_id}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 201)
+        self.assertTrue("User created on AWS" in response.get_data(as_text=True))
+
+        # then fetch user details from db
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.get(
+            "/aws/user",
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 200)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(returned_data['public_id'], public_id)

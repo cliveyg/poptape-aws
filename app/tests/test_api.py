@@ -224,7 +224,7 @@ class MyTest(FlaskTestCase):
             os.rename(badfile_filepath, relative_filepath)
 
         # valid payload with a random UUID
-        payload = {"public_id": str(uuid.uuid4())}
+        payload = {"public_id": getPublicID()}
         headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
         response = self.client.post(
             "/aws/user",
@@ -236,3 +236,48 @@ class MyTest(FlaskTestCase):
         self.assertTrue("Failed to create user on AWS" in response.get_data(as_text=True))
 
         os.rename(renamed_filepath, relative_filepath)
+
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_user_success(self):
+
+        # create a user first
+        public_id = getSpecificPublicID()
+        payload = {"public_id": public_id}
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.post(
+            "/aws/user",
+            data=json.dumps(payload),
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 201)
+        self.assertTrue("User created on AWS" in response.get_data(as_text=True))
+
+        # then fetch user details from db
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.get(
+            "/aws/user",
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 200)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(returned_data['public_id'], public_id)
+        self.assertEqual(returned_data['aws_UserName'], "ze3cf14c3df064360af93b445c3d78d9e")
+        self.assertEqual(returned_data['aws_PolicyName'], "poptape_aws_standard_user_policy")
+
+    # -----------------------------------------------------------------------------
+
+    def test_get_aws_routes(self):
+
+        headers = { 'Content-type': 'application/json', 'x-access-token': 'somefaketoken' }
+        response = self.client.get(
+            "/aws",
+            headers=headers,
+        )
+
+        self.assertTrue(response.status_code, 200)
+        returned_data = json.loads(response.get_data(as_text=True))
+        self.assertTrue(len(returned_data['endpoints']), 6)

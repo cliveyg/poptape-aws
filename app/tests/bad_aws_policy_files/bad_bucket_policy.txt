@@ -1,5 +1,5 @@
 {
-  "Version":"2012-10-17",
+  Version":"2012-10-17",
   "Statement":[
     {
       "Sid": "OnlyBcketOwnerPut",
@@ -9,7 +9,7 @@
       },
       "Action": "s3:PutObject",
       "Resource": [
-        "arn:aws:s3:::XXXXXX/*"
+        "arn:aws:s3:::XXXXX/*"
       ]
     },
     {

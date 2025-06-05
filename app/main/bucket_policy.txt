@@ -2,6 +2,15 @@
   "Version":"2012-10-17",
   "Statement":[
     {
+      "Sid": "OtherUsersForbidPut",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": [
+        "arn:aws:s3:::XXXXXX/*"
+      ]
+    },
+    {
       "Sid": "OnlyBucketOwnerPut",
       "Effect": "Allow",
       "Principal": {
@@ -9,15 +18,6 @@
       },
       "Action": "s3:PutObject",
       "Resource": [
-        "arn:aws:s3:::XXXXXX/*"
-      ]
-    },
-    {
-      "Sid": "OtherUsersForbidPut",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:PutObject",
-      "NotResource": [
         "arn:aws:s3:::XXXXXX/*"
       ]
     },

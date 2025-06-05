@@ -45,6 +45,8 @@ def require_access_level(access_level,request): # pragma: no cover
 
             headers = { 'Content-Type': 'application/json', 'x-access-token': token }
             url = os.getenv('CHECK_ACCESS_URL')+str(access_level)
+            appy.logger('ENV CHECK ACCESS URL IS [%s]',os.getenv('CHECK_ACCESS_URL'))
+            appy.logger('FULL CHECK ACCESS URL IS [%s]',url)
             try:
                 r = requests.get(url, headers=headers)
             except Exception as err:

@@ -103,14 +103,13 @@ def create_aws_user(public_id):
         app.logger.error('Failed to open and/or read bucket policy template. Check it exists and permissions are correct.')
         return False
 
-    bucket_policy = bucket_policy.replace('XXXXXX',collection_name)
-    bucket_policy = bucket_policy.replace('AAAAAA',create_response['User']['Arn'])
+    bucket_policy = bucket_policy.replace('XXXXXX', collection_name.lower())
+    bucket_policy = bucket_policy.replace('AAAAAA', create_response['User']['Arn'])
 
     app.logger.debug("attempting to create a bucket")
 
     try:
         buck_resp = app.s3.create_bucket(Bucket = collection_name.lower()) 
-        #app.s3.put_bucket_policy(Bucket = collection_name.lower(), Policy = bucket_policy)
     except ClientError as e:
         app.logger.error('Failed to create bucket for AWS user: '+str(e))
         return False
@@ -141,6 +140,7 @@ def create_aws_user(public_id):
     app.logger.debug("attempting to create a bucket policy")
 
     try:
+        app.logger.debug("BUCKET POLICY: %s", bucket_policy)
         app.s3.put_bucket_policy(Bucket = collection_name.lower(), Policy = bucket_policy)
     except ClientError as e:
         app.logger.error('Failed to create bucket policy: '+str(e))

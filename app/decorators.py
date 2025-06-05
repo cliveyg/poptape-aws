@@ -13,6 +13,7 @@ load_dotenv()
 # these are separate from the views so we can mock them more easily  in tests
 # -----------------------------------------------------------------------------
 
+#TODO : Check if this is needed
 def microservice_only(request): # pragma: no cover
     def actual_decorator(f):
         @wraps(f)
@@ -23,8 +24,8 @@ def microservice_only(request): # pragma: no cover
             if not ip_address:
                 return jsonify({ 'message': 'Hmmm, bit suspicious. Away yer go'}), 401
 
-            if ip_address in good_neighbourhood:
-                return f(pub_id, request, *args, **kwargs)
+            #if ip_address in good_neighbourhood:
+            #    return f(pub_id, request, *args, **kwargs)
 
             return jsonify({ 'message': 'Yer name\'s not down. Yer not coming in'}), 401
 
@@ -45,8 +46,8 @@ def require_access_level(access_level,request): # pragma: no cover
 
             headers = { 'Content-Type': 'application/json', 'x-access-token': token }
             url = os.getenv('CHECK_ACCESS_URL')+str(access_level)
-            appy.logger('ENV CHECK ACCESS URL IS [%s]',os.getenv('CHECK_ACCESS_URL'))
-            appy.logger('FULL CHECK ACCESS URL IS [%s]',url)
+            appy.logger.debug('FULL CHECK ACCESS URL IS [%s]', url)
+
             try:
                 r = requests.get(url, headers=headers)
             except Exception as err:

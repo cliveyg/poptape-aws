@@ -5,7 +5,7 @@ from flask import current_app as app
 from app.main import bp
 from app.main.create_user import create_aws_user, create_presigned_url
 from app.models import AwsDetails 
-from app.decorators import require_access_level, microservice_only
+from app.decorators import require_access_level
 from app.assertions import assert_valid_schema
 from jsonschema.exceptions import ValidationError as JsonValidationError
 import uuid

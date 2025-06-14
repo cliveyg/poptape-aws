@@ -1,11 +1,4 @@
-FROM python:3.13-alpine
-# as base
-
-RUN apk update && apk add postgresql-dev gcc g++ make libffi-dev python3-dev musl-dev openssl-dev
-# add bash etc as alpine version doesn't have these
-RUN apk add linux-headers 
-RUN apk add --no-cache bash gawk sed grep bc coreutils
-RUN apk --no-cache add libpq
+FROM python:3.12-slim
 
 COPY aws.py /aws/
 COPY requirements.txt /aws/
@@ -24,7 +17,7 @@ EXPOSE 8040
 
 # if -u flag in CMD below doesn't work 
 # then uncomment this to see python
-# print statements in docker logs
+# print statements in docker logs
 ENV PYTHONUNBUFFERED=0
 
 # Run app.py when the container launches

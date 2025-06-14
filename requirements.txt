@@ -32,7 +32,7 @@ more-itertools
 moto
 packaging
 pluggy
-psycopg2
+psycopg2-binary
 py
 pycparser
 pyparsing

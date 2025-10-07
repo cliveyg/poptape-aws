@@ -6,6 +6,7 @@ import boto3
 from botocore.client import Config
 import os
 import logging
+import re
 from sqlalchemy.exc import SQLAlchemyError, DBAPIError
 from botocore.exceptions import ClientError
 import time
@@ -17,7 +18,9 @@ from cryptography.fernet import Fernet
 
 def create_aws_user(public_id):
 
-    collection_name = 'z'+public_id.replace('-','')
+    aws_username = 'z'+public_id
+    aws_username = aws_username.lower()
+    bucket_name = "poptape-std-user-"+aws_username
 
     app.logger.debug("In create_aws_user function")
 
@@ -35,7 +38,7 @@ def create_aws_user(public_id):
         app.logger.error('Failed to open and/or read aws standard policy template. Check it exists and permissions are correct.')
         return False
     
-    policy_data = policy_data.replace('XXXXXX',collection_name)
+    policy_data = policy_data.replace('XXXXXX', bucket_name)
 
     app.logger.debug("Read standard policy text file")
 
@@ -45,7 +48,7 @@ def create_aws_user(public_id):
     create_response = None
     app.logger.debug("Attempting to create iam user")
     try:
-        create_response = app.iam.create_user(UserName=collection_name)
+        create_response = app.iam.create_user(UserName=aws_username, Path='/poptape-standard-users/')
     except ClientError as e:
         app.logger.error('Failed to create AWS user: '+str(e))
         return False
@@ -62,7 +65,7 @@ def create_aws_user(public_id):
 
     try:
         policy_response = app.iam.put_user_policy(
-            UserName = collection_name,
+            UserName = aws_username,
             PolicyName = 'poptape_aws_standard_user_policy',
             PolicyDocument = policy_data
         )
@@ -80,7 +83,7 @@ def create_aws_user(public_id):
     # create access key for user
     
     try:
-        key_response = app.iam.create_access_key(UserName = collection_name)
+        key_response = app.iam.create_access_key(UserName = aws_username)
     except ClientError as e:
         app.logger.error('Failed to create access key for AWS user: '+str(e))
         return False    
@@ -103,19 +106,19 @@ def create_aws_user(public_id):
         app.logger.error('Failed to open and/or read bucket policy template. Check it exists and permissions are correct.')
         return False
 
-    bucket_policy = bucket_policy.replace('XXXXXX', collection_name.lower())
+    bucket_policy = bucket_policy.replace('XXXXXX', bucket_name)
     bucket_policy = bucket_policy.replace('AAAAAA', create_response['User']['Arn'])
 
     app.logger.debug("attempting to create a bucket")
 
     try:
-        buck_resp = app.s3.create_bucket(Bucket = collection_name.lower()) 
+        buck_resp = app.s3.create_bucket(Bucket = bucket_name)
     except ClientError as e:
         app.logger.error('Failed to create bucket for AWS user: '+str(e))
         return False
 
     if buck_resp['ResponseMetadata']["HTTPStatusCode"] != 200:
-        app.logger.error("Could not create bucket [%s] for user", collection_name.lower())
+        app.logger.error("Could not create bucket [%s] for user", aws_username.lower())
         return False
 
     app.logger.debug("bucket created for user ✓")
@@ -128,7 +131,7 @@ def create_aws_user(public_id):
 
     try:
         app.s3.delete_public_access_block(
-            Bucket = collection_name.lower(),
+            Bucket = bucket_name,
             ExpectedBucketOwner = app.config['AWS_ACCOUNT_ID'],
         )
     except ClientError as e:
@@ -136,12 +139,12 @@ def create_aws_user(public_id):
         return False
     app.logger.debug("updated bucket settings ✓")
 
-    time.sleep(2)
+    time.sleep(5)
     app.logger.debug("attempting to create a bucket policy")
 
     try:
         app.logger.debug("BUCKET POLICY: %s", bucket_policy)
-        app.s3.put_bucket_policy(Bucket = collection_name.lower(), Policy = bucket_policy)
+        app.s3.put_bucket_policy(Bucket = bucket_name, Policy = bucket_policy)
     except ClientError as e:
         app.logger.error('Failed to create bucket policy: '+str(e))
         return False        
@@ -161,11 +164,11 @@ def create_aws_user(public_id):
     }
 
     try:
-        app.s3.put_bucket_cors(Bucket = collection_name.lower(),
+        app.s3.put_bucket_cors(Bucket = bucket_name,
                                CORSConfiguration = cors_configuration)
     except ClientError as e:
         app.logger.error('Failed to create cors config for bucket [%s]: %s',
-                         collection_name,
+                         bucket_name,
                          str(e))
         return False
     
@@ -204,8 +207,10 @@ def create_aws_user(public_id):
 def create_presigned_url(bucket_name, object_name, expiration, public_id):
 
     aws_details = AwsDetails.query.filter_by(public_id=public_id).first()
+    app.logger.debug("In create_presigned_url ✓")
 
     if not aws_details:
+        app.logger.debug("AWS deets not found")
         return None
 
     # get access keys
@@ -229,7 +234,11 @@ def create_presigned_url(bucket_name, object_name, expiration, public_id):
                                               object_name,
                                               Fields=None,
                                               Conditions=None,
-                                              ExpiresIn=expiration)
+                                              ExpiresIn=20000)
+
+        app.logger.debug("RESP FROM AWS GEN URL IS:")
+        app.logger.debug(response)
+
     except ClientError as e:
         logging.error(e)
         return None

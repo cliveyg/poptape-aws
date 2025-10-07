@@ -128,8 +128,7 @@ def generate_presigned_urls(public_id, request):
     except:
         return jsonify({ 'message': 'Problem at our end', 'error': 'S3 exp not numeric' }), 500
 
-    collection_name = 'z'+public_id.replace('-','')
-    bucket_name = collection_name.lower()
+    bucket_name = 'poptape-std-bucket-'+public_id.lower()
     urls = []
 
     for object_id in objects:

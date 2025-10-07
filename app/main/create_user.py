@@ -20,7 +20,7 @@ def create_aws_user(public_id):
 
     aws_username = 'psu-'+public_id
     aws_username = aws_username.lower()
-    bucket_name = "poptape-std-bucket-"+public_id
+    bucket_name = "psb-"+public_id
 
     app.logger.debug("In create_aws_user function")
 

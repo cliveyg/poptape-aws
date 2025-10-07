@@ -18,9 +18,9 @@ from cryptography.fernet import Fernet
 
 def create_aws_user(public_id):
 
-    aws_username = 'z'+public_id
+    aws_username = 'psu-'+public_id
     aws_username = aws_username.lower()
-    bucket_name = "poptape-std-user-"+aws_username
+    bucket_name = "poptape-std-bucket-"+public_id
 
     app.logger.debug("In create_aws_user function")
 

@@ -1,32 +1,33 @@
 {
-  "Version":"2012-10-17",
-  "Statement":[
-    {
-      "Sid": "OtherUsersForbidPut",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:PutObject",
-      "Resource": [
-        "arn:aws:s3:::XXXXXX/*"
-      ]
-    },
-    {
-      "Sid": "OnlyBucketOwnerPut",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "AAAAAA"
-      },
-      "Action": "s3:PutObject",
-      "Resource": [
-        "arn:aws:s3:::XXXXXX/*"
-      ]
-    },
-    {
-      "Sid":"AllUsersGet",
-      "Effect":"Allow",
-      "Principal": "*",
-      "Action":["s3:GetObject"],
-      "Resource":["arn:aws:s3:::XXXXXX/*"]
-    }
-  ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "OtherUsersForbidPut",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::XXXXXX/*",
+            "Condition": {
+                "StringNotEquals": {
+                    "aws:principalarn": "AAAAAA"
+                }
+            }
+        },
+        {
+            "Sid": "OnlyBucketOwnerPut",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "AAAAAA"
+            },
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::XXXXXX/*"
+        },
+        {
+            "Sid": "AllUsersGet",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::XXXXXX/*"
+        }
+    ]
 }

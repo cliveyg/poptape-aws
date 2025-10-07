@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: poptape/aws/api:v0.1
+    image: poptape/aws/api:v${VERSION}
     ports:
       - "1240:8040"
     restart: always

@@ -1,4 +1,6 @@
 # app/main/views.py
+import os
+
 from app import db, limiter, flask_uuid
 from flask import jsonify, request, abort, url_for
 from flask import current_app as app
@@ -111,6 +113,7 @@ def generate_presigned_urls(public_id, request):
     except:
         return jsonify({ 'message': 'Check ya inputs mate. Yer not valid, Jason'}), 400
 
+    app.logger.info("In /aws/urls")
     # validate input against json schemas
     try:
         assert_valid_schema(data, 'urls')
@@ -118,14 +121,20 @@ def generate_presigned_urls(public_id, request):
         return jsonify({ 'message': 'Check ya inputs mate.', 'error': err.message }), 400
 
     objects = data['objects']
-    expiration = 3600 #TODO: put this in .env
-    collection_name = 'z'+public_id.replace('-','')
-    bucket_name = collection_name.lower()
+    expiration = 20000
+    #expiration = os.getenv("S3_URL_EXPIRATION")
+    try:
+        expiration = int(os.getenv("S3_URL_EXPIRATION"))
+    except:
+        return jsonify({ 'message': 'Problem at our end', 'error': 'S3 exp not numeric' }), 500
+
+    bucket_name = 'psb-'+public_id.lower()
     urls = []
 
     for object_id in objects:
         resp = None
         response = {}
+        app.logger.info("In /aws/urls - object_id")
         resp = create_presigned_url(bucket_name, object_id, expiration, public_id)
         if resp:
             response['foto_id'] = object_id
@@ -144,7 +153,7 @@ def generate_presigned_urls(public_id, request):
 @limiter.limit("100/hour")
 def system_running():
     app.logger.info("Praise the FSM! The sauce is ready")
-    return jsonify({ 'message': 'System running...' }), 200
+    return jsonify({ 'message': 'System running...', 'version': os.getenv("VERSION") }), 200
 
 # -----------------------------------------------------------------------------
 # route for testing rate limit works - generates 429 if more than two calls
